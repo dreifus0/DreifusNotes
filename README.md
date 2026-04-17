@@ -1,6 +1,6 @@
 # Dreifus Notes
 
-A cross-platform application template built with **Kotlin Multiplatform** + **Compose Multiplatform** for Android and iOS.
+A cross-platform application example built with KMP for Android and iOS.
 
 The goal is to maximize code sharing between platforms. All business logic, navigation, UI and DI live in `commonMain`. Platform-specific code is kept to an absolute minimum: `MainActivity` on Android, `MainViewController` on iOS.
 
