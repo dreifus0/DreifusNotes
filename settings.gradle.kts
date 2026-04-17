@@ -12,7 +12,7 @@ dependencyResolutionManagement {
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-rootProject.name = "KmpTemplateApp"
+rootProject.name = "DreifusNotes"
 
 include(
     ":composeApp",

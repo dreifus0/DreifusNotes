@@ -15,6 +15,8 @@ kotlin {
             api(libs.compose.foundation)
             api(libs.compose.material3)
             api(libs.androidx.lifecycle.runtimeCompose)
+            api(libs.haze)
+            api(libs.haze.materials)
         }
         androidMain.dependencies {
             api(libs.compose.uiTooling)

@@ -1,5 +1,5 @@
 [versions]
-agp = "8.11.2"
+agp = "9.1.1"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
@@ -16,6 +16,7 @@ napier = "2.7.1"
 navigation3 = "1.0.0-alpha06"
 lifecycle-nav3 = "2.10.0-alpha06"
 ksp = "2.3.0-2.0.2"
+haze = "1.7.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -61,6 +62,10 @@ plugin-compose-compiler = { module = "org.jetbrains.kotlin:compose-compiler-grad
 
 # KSP
 symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+
+# Haze
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

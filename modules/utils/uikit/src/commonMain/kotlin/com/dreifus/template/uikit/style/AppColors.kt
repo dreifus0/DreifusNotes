@@ -13,6 +13,7 @@ data class AppColors(
     // Content
     val contentPrimary: Color,
     val contentSecondary: Color,
+    val contentTertiary: Color,
     val contentDividers: Color,
     val contentBorder: Color,
     val contentShadow: Color,
@@ -75,6 +76,7 @@ val LocalAppColors = staticCompositionLocalOf {
     AppColors(
         contentPrimary = Color.Unspecified,
         contentSecondary = Color.Unspecified,
+        contentTertiary = Color.Unspecified,
         contentDividers = Color.Unspecified,
         contentBorder = Color.Unspecified,
         contentShadow = Color.Unspecified,

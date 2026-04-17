@@ -1,4 +1,4 @@
-# KMP App Template
+# Dreifus Notes
 
 A cross-platform application template built with **Kotlin Multiplatform** + **Compose Multiplatform** for Android and iOS.
 
@@ -20,12 +20,12 @@ The goal is to maximize code sharing between platforms. All business logic, navi
 | Kotlin Serialization | 1.8.0 | JSON serialization |
 | KSP | 2.3.0-2.0.2 | Kotlin Symbol Processing |
 | AGP | 8.11.2 | Android build |
-| Gradle | 8.14.3 | Build system |
+| Gradle | 9.3.1 | Build system |
 
 ## Project Structure
 
 ```
-KmpAppTemplate/
+DreifusNotes/
 ├── composeApp/                        # Main KMP application module
 │   ├── src/commonMain/                #   Shared code (UI, logic, navigation)
 │   │   └── kotlin/com/dreifus/app/
