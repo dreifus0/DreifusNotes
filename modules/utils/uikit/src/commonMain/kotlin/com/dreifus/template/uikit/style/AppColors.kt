@@ -29,6 +29,15 @@ data class AppColors(
     val accentLink: Color,
     val accentOnPrimary: Color,
     val accentOnSecondary: Color,
+    // TextField
+    val inputBgBase: Color,
+    val inputBorderFocus: Color,
+    val inputBorderError: Color,
+    val inputTextFilled: Color,
+    val inputTextDefault: Color,
+    val inputTextError: Color,
+    // Glass
+    val bgGlassPrimary: Color,
 ) {
 
     val isDarkTheme = backgroundBase.luminance() < 0.5f
@@ -90,6 +99,13 @@ val LocalAppColors = staticCompositionLocalOf {
         accentLink = Color.Unspecified,
         accentOnPrimary = Color.Unspecified,
         accentOnSecondary = Color.Unspecified,
+        inputBgBase = Color.Unspecified,
+        inputBorderFocus = Color.Unspecified,
+        inputBorderError = Color.Unspecified,
+        inputTextFilled = Color.Unspecified,
+        inputTextDefault = Color.Unspecified,
+        inputTextError = Color.Unspecified,
+        bgGlassPrimary = Color.Unspecified,
     )
 }
 

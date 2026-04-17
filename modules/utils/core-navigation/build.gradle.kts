@@ -16,7 +16,6 @@ kotlin {
             api(libs.metrox.viewmodel.compose)
             implementation(projects.modules.utils.uikit)
             implementation(libs.kotlin.serialization)
-            implementation(libs.haze)
         }
     }
 }

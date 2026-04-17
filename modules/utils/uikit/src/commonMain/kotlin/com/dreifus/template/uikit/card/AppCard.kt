@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -42,7 +42,7 @@ fun AppCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 52.dp)
+            .height(96.dp)
             .clip(shape)
             .background(palette.background, shape)
             .clickable(
@@ -50,8 +50,8 @@ fun AppCard(
                 indication = ripple(),
                 onClick = onClick,
             )
-            .padding(horizontal = 10.dp, vertical = 9.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -62,7 +62,7 @@ fun AppCard(
             }
             Text(
                 text = title,
-                style = AppTheme.typography.headlineSmall,
+                style = AppTheme.typography.headlineMedium,
                 color = palette.title,
                 maxLines = 1,
             )
@@ -72,18 +72,15 @@ fun AppCard(
             text = body,
             style = AppTheme.typography.bodySmall,
             color = palette.body,
-            maxLines = 2,
+            maxLines = 1,
             modifier = if (isLocked) Modifier.blur(3.dp) else Modifier,
         )
 
-        Spacer(2.dp)
+        Spacer(Modifier.weight(1f))
 
         Text(
             text = date,
-            style = AppTheme.typography.headlineSmall.copy(
-                fontSize = AppTheme.typography.bodySmall.fontSize,
-                letterSpacing = AppTheme.typography.headlineSmall.letterSpacing,
-            ),
+            style = AppTheme.typography.headlineSmall,
             color = palette.date,
         )
     }

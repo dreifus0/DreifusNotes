@@ -1,0 +1,38 @@
+CREATE TABLE NoteEntity (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    title          TEXT    NOT NULL DEFAULT '',
+    description    TEXT    NOT NULL DEFAULT '',
+    color          TEXT    NOT NULL DEFAULT 'Purple',
+    is_protected   INTEGER NOT NULL DEFAULT 0,
+    encrypted_body BLOB,
+    iv             BLOB,
+    salt           BLOB,
+    created_at     INTEGER NOT NULL,
+    updated_at     INTEGER NOT NULL
+);
+
+selectAll:
+SELECT * FROM NoteEntity ORDER BY updated_at DESC;
+
+selectById:
+SELECT * FROM NoteEntity WHERE id = ?;
+
+searchByTitleOrDescription:
+SELECT * FROM NoteEntity
+WHERE title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%'
+ORDER BY updated_at DESC;
+
+insert:
+INSERT INTO NoteEntity (title, description, color, is_protected, encrypted_body, iv, salt, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+update:
+UPDATE NoteEntity
+SET title = ?, description = ?, color = ?, is_protected = ?, encrypted_body = ?, iv = ?, salt = ?, updated_at = ?
+WHERE id = ?;
+
+touchUpdatedAt:
+UPDATE NoteEntity SET updated_at = ? WHERE id = ?;
+
+delete:
+DELETE FROM NoteEntity WHERE id = ?;

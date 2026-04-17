@@ -1,6 +1,6 @@
 package com.dreifus.app.navigation
 
-import com.dreifus.app.features.counter.ui.CounterScreen
+import com.dreifus.app.features.notes.main.NotesListScreen
 import com.dreifus.app.features.stub.ui.StubScreen
 import com.dreifus.navigation.screen.regular.RegularScreen
 import com.dreifus.navigation.ui.RootScreenWithTabs
@@ -18,18 +18,18 @@ enum class HomeTabs(
     override val screenFactory: () -> RegularScreen,
     override val screenClass: KClass<out RegularScreen>,
 ) : RootScreenWithTabs.TabData {
-    Counter(screenFactory = ::CounterScreen, screenClass = CounterScreen::class),
+    Notes(screenFactory = ::NotesListScreen, screenClass = NotesListScreen::class),
     Stub(screenFactory = ::StubScreen, screenClass = StubScreen::class),
 }
 
 val mainTabs: List<TabInfo<RootScreenWithTabs.TabData>> = listOf(
     TabInfo(
-        icon = { AppIcons.Notes24.painter },
+        icon = AppIcons.Notes24,
         title = { stringResource(Res.string.tab_notes) },
-        data = HomeTabs.Counter,
+        data = HomeTabs.Notes,
     ),
     TabInfo(
-        icon = { AppIcons.Settings24.painter },
+        icon = AppIcons.Settings24,
         title = { stringResource(Res.string.tab_settings) },
         data = HomeTabs.Stub,
     ),

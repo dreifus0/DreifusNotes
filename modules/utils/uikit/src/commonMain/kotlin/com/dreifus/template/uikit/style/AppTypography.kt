@@ -29,7 +29,7 @@ class AppTypography(
         letterSpacing = defaultLetterSpacing,
     )
 
-    val heading1: TextStyle = semiBold.copy(fontSize = 40.sp, lineHeight = 48.sp)
+    val heading1: TextStyle = semiBold.copy(fontSize = 42.sp, lineHeight = 50.sp)
     val heading2: TextStyle = semiBold.copy(fontSize = 32.sp, lineHeight = 40.sp)
     val heading3: TextStyle = semiBold.copy(fontSize = 28.sp, lineHeight = 32.sp)
     val heading4: TextStyle = semiBold.copy(fontSize = 24.sp, lineHeight = 28.sp)

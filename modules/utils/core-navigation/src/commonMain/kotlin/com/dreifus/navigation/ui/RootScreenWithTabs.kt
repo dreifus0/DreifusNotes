@@ -27,8 +27,6 @@ import com.dreifus.navigation.screen.regular.RegularScreen
 import com.dreifus.navigation.statusBarsPaddingIfNeeded
 import com.dreifus.template.uikit.tabs.TabBar
 import com.dreifus.template.uikit.tabs.TabInfo
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.rememberHazeState
 import kotlin.reflect.KClass
 
 interface RootScreenWithTabs : RegularScreen {
@@ -39,7 +37,6 @@ interface RootScreenWithTabs : RegularScreen {
             tabNavState?.let { tabs.getOrNull(it.activeTabIndex) }
                 ?: tabs.find { it.data.screenClass == screen::class }
         }
-        val hazeState = rememberHazeState()
         val localDensity = LocalDensity.current
         var consumePaddingDp by remember {
             mutableStateOf(0.dp)
@@ -57,7 +54,6 @@ interface RootScreenWithTabs : RegularScreen {
                     .testTag(screen::class.simpleName!!)
                     .consumeWindowInsets(PaddingValues(bottom = consumePaddingDp))
                     .imePadding()
-                    .haze(hazeState)
             ) {
                 screen.Content()
             }
@@ -67,7 +63,6 @@ interface RootScreenWithTabs : RegularScreen {
                     consumePaddingDp = with(localDensity) { coordinates.size.height.toDp() }
                 },
                 tabs = tabs,
-                hazeState = hazeState,
                 currentTab = currentTab,
                 onTabClick = { clickedTab ->
                     if (tabNavState != null) {

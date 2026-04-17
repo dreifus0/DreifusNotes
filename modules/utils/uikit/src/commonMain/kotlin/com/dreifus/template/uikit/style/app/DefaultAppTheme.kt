@@ -21,6 +21,13 @@ object DefaultAppTheme : SpecificAppTheme() {
         accentLink = Color(0xFF534AB7),
         accentOnPrimary = Color(0xFFFFFFFF),
         accentOnSecondary = Color(0xFFFFFFFF),
+        inputBgBase = Color(0xFFD4D7DD),
+        inputBorderFocus = Color(0xFF534AB7),
+        inputBorderError = Color(0xFFA32D2D),
+        inputTextFilled = Color(0xFF0B0B0C),
+        inputTextDefault = Color(0xFF5A5A5F),
+        inputTextError = Color(0xFFA32D2D),
+        bgGlassPrimary = Color(0xFFD4D7DD),
     )
 
     override val darkColors = AppColors(
@@ -40,5 +47,12 @@ object DefaultAppTheme : SpecificAppTheme() {
         accentLink = Color(0xFF7F77DD),
         accentOnPrimary = Color(0xFF0E0E10),
         accentOnSecondary = Color(0xFF0E0E10),
+        inputBgBase = Color(0xFF2A2A2E),
+        inputBorderFocus = Color(0xFF7F77DD),
+        inputBorderError = Color(0xFFE24B4A),
+        inputTextFilled = Color(0xFFEDEDEE),
+        inputTextDefault = Color(0xFF9898A0),
+        inputTextError = Color(0xFFE24B4A),
+        bgGlassPrimary = Color(0xFF38345A),
     )
 }

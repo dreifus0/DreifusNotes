@@ -19,9 +19,9 @@ KMP app (Android + iOS) — notes with PIN protection.
 composeApp/                         — app entry point
 modules/
 ├── data/
-│   └── counter/                    — data layer (placeholder)
+│   └── notes/                      — notes data layer (SQLDelight + SQLCipher)
 ├── features/
-│   ├── counter/                    — placeholder screen (future: Notes)
+│   ├── notes/                      — notes feature
 │   └── stub/                       — placeholder screen (future: Settings)
 └── utils/
     ├── arch/                       — LceState (Loading/Content/Error)
@@ -54,6 +54,7 @@ Both apply: kotlin-multiplatform, compose, compose-compiler. Targets: androidTar
        sourceSets {
            commonMain.dependencies {
                implementation(libs.mvucore)
+               implementation(libs.metrox.viewmodel.compose)
                implementation(projects.modules.utils.arch)
                implementation(projects.modules.utils.uikit)
                implementation(projects.modules.utils.coreNavigation)
@@ -62,11 +63,20 @@ Both apply: kotlin-multiplatform, compose, compose-compiler. Targets: androidTar
    }
    ```
 2. Add to `settings.gradle.kts`: `include(":modules:features:<name>")`
-3. Internal structure:
+3. Internal structure — one sub-package per screen, named after the screen (e.g. `main`, `detail`):
    ```
    src/commonMain/kotlin/com/dreifus/app/features/<name>/
-   ├── data/           — repositories, mapping
-   └── presentation/   — Screen, ViewModel (MVU), UI components
+   └── <screen>/                 — e.g. main, detail
+       ├── <Screen>Screen.kt     — Screen class + UI composables + @Preview
+       ├── <Screen>ViewModel.kt  — ViewModel (@Inject @ViewModelKey @ContributesIntoMap)
+       └── mvu/
+           ├── <Screen>State.kt        — State + display models (e.g. NoteUiItem)
+           ├── <Screen>Event.kt        — Event (Ui sealed subinterface + internal events)
+           ├── <Screen>Command.kt      — Command
+           ├── <Screen>Effect.kt       — Effect
+           ├── <Screen>Update.kt       — Update (pure function)
+           └── commandHandler/
+               └── <Screen>CommandHandler.kt
    ```
 4. Add dependency to `composeApp/build.gradle.kts`
 
