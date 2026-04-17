@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -28,8 +29,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dreifus.template.uikit.icon.ArrowLeft24
+import com.dreifus.template.uikit.icon.Edit24
+import com.dreifus.template.uikit.icon.Lock24
+import com.dreifus.template.uikit.icon.MoreHoriz24
+import com.dreifus.template.uikit.icon.Trash24
+import com.dreifus.template.uikit.preview.AppPreview
 import com.dreifus.template.uikit.style.AppIcon
+import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 
 private val emptyAction = {}
@@ -40,6 +49,7 @@ fun AppToolbar(
     button: ToolbarButton?,
     modifier: Modifier = Modifier,
     titleVisible: Boolean = true,
+    centerTitle: Boolean = true,
 ) {
     AppToolbar(
         title = title,
@@ -49,6 +59,7 @@ fun AppToolbar(
         startIconClick = if (button?.position == ToolbarPosition.START) button.onClick() else emptyAction,
         endIcon = if (button?.position == ToolbarPosition.END) button.icon.painter else null,
         endIconClick = if (button?.position == ToolbarPosition.END) button.onClick() else emptyAction,
+        centerTitle = centerTitle,
     )
 }
 
@@ -59,13 +70,14 @@ fun AppToolbar(
     buttons: List<ToolbarButton>,
     modifier: Modifier = Modifier,
     titleVisible: Boolean = true,
+    centerTitle: Boolean = true,
 ) {
     @Composable
     fun List<ToolbarButton>.asBlock() {
         forEachIndexed { index, button ->
             val onClick = button.onClick()
             if (index > 0) {
-                Spacer(8.dp)
+                Spacer(Modifier.width(8.dp))
             }
             button.icon(modifier = buttonModifier(onClick), tint = button.tint)
         }
@@ -83,6 +95,7 @@ fun AppToolbar(
         titleVisible = titleVisible,
         startBlock = buttonsBlock(ToolbarPosition.START),
         endBlock = buttonsBlock(ToolbarPosition.END),
+        centerTitle = centerTitle,
     )
 }
 
@@ -96,6 +109,7 @@ fun AppToolbar(
     endIcon: Painter? = null,
     endIconClick: () -> Unit = emptyAction,
     titleVisible: Boolean = true,
+    centerTitle: Boolean = true,
 ) {
     AppToolbar(
         title = title,
@@ -118,7 +132,8 @@ fun AppToolbar(
                     modifier = buttonModifier { endIconClick() },
                 )
             }
-        }
+        },
+        centerTitle = centerTitle,
     )
 }
 
@@ -128,6 +143,7 @@ fun AppToolbar(
     title: String,
     modifier: Modifier = Modifier,
     titleVisible: Boolean = true,
+    centerTitle: Boolean = true,
     startBlock: (@Composable RowScope.() -> Unit)? = null,
     endBlock: (@Composable RowScope.() -> Unit)?,
 ) {
@@ -137,14 +153,10 @@ fun AppToolbar(
     }
     val showStartIcon = startBlock != null
     val showEndIcon = endBlock != null
-    val padding = when {
-        showStartIcon && showEndIcon -> PaddingValues(
-            start = 4.dp,
-            top = 4.dp,
-            end = 4.dp,
-            bottom = 4.dp
-        )
-
+    val padding = if (!centerTitle && (showStartIcon || showEndIcon)) {
+        PaddingValues(horizontal = 16.dp, vertical = 16.dp)
+    } else when {
+        showStartIcon && showEndIcon -> PaddingValues(start = 4.dp, top = 4.dp, end = 4.dp, bottom = 4.dp)
         showStartIcon -> PaddingValues(start = 4.dp, top = 4.dp, end = 16.dp, bottom = 4.dp)
         showEndIcon -> PaddingValues(start = 16.dp, top = 4.dp, end = 4.dp, bottom = 4.dp)
         else -> PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp)
@@ -155,18 +167,18 @@ fun AppToolbar(
         Row(
             modifier = Modifier
                 .then(modifier)
-                .height(44.dp)
+                .let { if (centerTitle) it.height(44.dp) else it }
                 .fillMaxWidth()
                 .padding(padding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             startBlock?.invoke(this)
-            val textAlign = when {
+            val textAlign = if (!centerTitle) TextAlign.Start else when {
                 showStartIcon -> TextAlign.Center
                 showEndIcon -> TextAlign.Start
                 else -> TextAlign.Center
             }
-            val textPadding = when {
+            val textPadding = if (!centerTitle) PaddingValues() else when {
                 showStartIcon && !showEndIcon -> PaddingValues(end = 28.dp)
                 else -> PaddingValues()
             }
@@ -174,6 +186,7 @@ fun AppToolbar(
                 text = title,
                 modifier = Modifier
                     .weight(1f)
+                    .padding(horizontal = if (!centerTitle) 16.dp else 0.dp)
                     .padding(textPadding)
                     .alpha(titleAlpha.value),
                 style = AppTheme.typography.headlineLarge,
@@ -221,7 +234,79 @@ data class EndToolbarButton(
     override fun onClick() = onClick
 }
 
+data class StartToolbarButton(
+    override val icon: AppIcon,
+    override val tint: Color = Color.Unspecified,
+    val onClick: () -> Unit,
+) : ToolbarButton {
+    override val position: ToolbarPosition = ToolbarPosition.START
+
+    @Composable
+    override fun onClick() = onClick
+}
+
 enum class ToolbarPosition {
     START,
     END,
+}
+
+@Preview
+@Composable
+private fun PreviewToolbarTitleOnly() {
+    AppPreview {
+        AppToolbar(title = "Notes", button = null)
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewToolbarWithBackButton() {
+    AppPreview {
+        AppToolbar(
+            title = "My note",
+            button = ToolbarButton.stub(ToolbarPosition.START, AppIcons.ArrowLeft24),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewToolbarWithEndButton() {
+    AppPreview {
+        AppToolbar(
+            title = "My note",
+            button = ToolbarButton.stub(ToolbarPosition.END, AppIcons.Edit24),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewToolbarWithBothButtons() {
+    AppPreview {
+        AppToolbar(
+            title = "My note",
+            buttons = listOf(
+                ToolbarButton.stub(ToolbarPosition.START, AppIcons.ArrowLeft24),
+                ToolbarButton.stub(ToolbarPosition.END, AppIcons.Edit24),
+                ToolbarButton.stub(ToolbarPosition.END, AppIcons.Trash24),
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewToolbarLeftAligned() {
+    AppPreview {
+        AppToolbar(
+            title = "Project ideas",
+            centerTitle = false,
+            buttons = listOf(
+                StartToolbarButton(AppIcons.ArrowLeft24) {},
+                EndToolbarButton(AppIcons.Lock24) {},
+                EndToolbarButton(AppIcons.MoreHoriz24) {},
+            ),
+        )
+    }
 }

@@ -23,6 +23,7 @@ import com.dreifus.app.features.notes.main.mvu.NotesListEffect
 import com.dreifus.app.features.notes.main.mvu.NotesListEvent
 import com.dreifus.app.features.notes.main.mvu.NotesListState
 import com.dreifus.app.features.notes.create.CreateNoteScreen
+import com.dreifus.app.features.notes.detail.NoteDetailScreen
 import com.dreifus.navigation.controller.Navigation
 import com.dreifus.navigation.ui.RootScreenWithTabs
 import com.dreifus.template.uikit.card.AppCard
@@ -43,12 +44,13 @@ class NotesListScreen : RootScreenWithTabs {
         val vm = metroViewModel<NotesListViewModel>()
         val state by vm.state.collectAsStateWithLifecycle()
         val bottomSheetNav = Navigation.bottomSheet
+        val regularNav = Navigation.regular
 
         LaunchedEffect(Unit) {
             vm.effects.collect { effect ->
                 when (effect) {
                     is NotesListEffect.NavigateToNewNote -> bottomSheetNav.navigate(CreateNoteScreen())
-                    is NotesListEffect.NavigateToNote -> Unit
+                    is NotesListEffect.NavigateToNote -> regularNav.navigate(NoteDetailScreen(effect.id))
                 }
             }
         }

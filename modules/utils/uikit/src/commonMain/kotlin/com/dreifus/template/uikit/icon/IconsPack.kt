@@ -83,6 +83,10 @@ val AppIcons.Backspace24 by cachedIcon {
     rememberPainter(BackspaceIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
 }
 
+val AppIcons.Send24 by cachedIcon {
+    rememberPainter(SendIcon).wrapWith(tint = AppTheme.colors.accentOnPrimary)
+}
+
 //endregion
 
 @androidx.compose.runtime.Composable
@@ -334,6 +338,15 @@ private val BackspaceIcon: ImageVector by lazy {
             close()
             moveTo(12f, 9f); lineTo(17f, 15f)
             moveTo(17f, 9f); lineTo(12f, 15f)
+        }
+    }
+}
+
+private val SendIcon: ImageVector by lazy {
+    icon24(name = "Send") {
+        stroke {
+            moveTo(22f, 2f); lineTo(11f, 13f)
+            moveTo(22f, 2f); lineTo(15f, 22f); lineTo(11f, 13f); lineTo(2f, 9f); lineTo(22f, 2f)
         }
     }
 }
