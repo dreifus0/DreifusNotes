@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 fun BottomSheetDialog(
     isVisible: Boolean = true,
     showCloseButton: Boolean = true,
-    scrimColor: Color = AppTheme.colors.backgroundDisabled,
+    scrimColor: Color = Color(0x52000000),
     background: Color = AppTheme.colors.backgroundBase,
     onDismissed: () -> Unit,
     content: @Composable BoxScope.() -> Unit,

@@ -15,6 +15,7 @@ kotlin {
             api(libs.compose.foundation)
             api(libs.compose.material3)
             api(libs.androidx.lifecycle.runtimeCompose)
+            api(libs.kotlinx.datetime)
         }
         androidMain.dependencies {
             api(libs.compose.uiTooling)
