@@ -45,8 +45,8 @@ kotlin {
             implementation(projects.modules.utils.uikit)
             implementation(projects.modules.utils.coreNavigation)
             implementation(projects.modules.data.notes)
+            implementation(projects.modules.features.pin)
             implementation(projects.modules.features.notes)
-            implementation(projects.modules.features.stub)
             implementation(projects.modules.features.settings)
         }
     }

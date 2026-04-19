@@ -22,7 +22,7 @@ include(
     ":modules:utils:uikit",
     ":modules:utils:core-navigation",
     ":modules:data:notes",
+    ":modules:features:pin",
     ":modules:features:notes",
-    ":modules:features:stub",
     ":modules:features:settings",
 )

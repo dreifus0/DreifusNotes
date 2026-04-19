@@ -35,7 +35,6 @@ import com.dreifus.app.features.notes.main.mvu.NoteUiItem
 import com.dreifus.app.features.notes.main.mvu.NotesListEffect
 import com.dreifus.app.features.notes.main.mvu.NotesListEvent
 import com.dreifus.app.features.notes.main.mvu.NotesListState
-import com.dreifus.app.features.notes.pin.lock.PinLockScreen
 import com.dreifus.navigation.controller.Navigation
 import com.dreifus.navigation.ui.RootScreenWithTabs
 import com.dreifus.template.uikit.button.AppButton
@@ -64,8 +63,10 @@ class NotesListScreen : RootScreenWithTabs {
                 when (effect) {
                     is NotesListEffect.NavigateToNewNote -> bottomSheetNav.navigate(CreateNoteScreen())
                     is NotesListEffect.NavigateToNote -> {
-                        if (effect.isProtected) regularNav.navigate(PinLockScreen(effect.id))
-                        else regularNav.navigate(NoteDetailScreen(effect.id))
+                        if (effect.isProtected) vm.pinNavigation.openPinLock(effect.id) { id ->
+                            regularNav.pop()
+                            regularNav.navigate(NoteDetailScreen(id))
+                        } else regularNav.navigate(NoteDetailScreen(effect.id))
                     }
                 }
             }

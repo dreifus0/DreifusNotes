@@ -43,7 +43,6 @@ import com.dreifus.app.features.notes.detail.mvu.NoteBlockUiItem
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEffect
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEvent
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailState
-import com.dreifus.app.features.notes.pin.setup.PinSetupScreen
 import com.dreifus.navigation.controller.Navigation
 import com.dreifus.navigation.screen.regular.RegularScreen
 import com.dreifus.template.uikit.icon.ArrowLeft24
@@ -81,7 +80,7 @@ class NoteDetailScreen(private val noteId: Long) : RegularScreen {
             vm.effects.collect { effect ->
                 when (effect) {
                     NoteDetailEffect.NavigateBack -> regularNav.pop()
-                    is NoteDetailEffect.NavigateToPinSetup -> regularNav.navigate(PinSetupScreen(effect.noteId))
+                    is NoteDetailEffect.NavigateToPinSetup -> vm.pinNavigation.openPinSetup(effect.noteId)
                     NoteDetailEffect.ShowImagePicker -> imagePickerLauncher()
                     NoteDetailEffect.ShowChecklistSheet -> bottomSheetNav.navigate(
                         CreateChecklistBottomSheet { title, items ->

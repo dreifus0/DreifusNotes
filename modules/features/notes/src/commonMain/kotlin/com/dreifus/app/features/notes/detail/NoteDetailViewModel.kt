@@ -3,6 +3,7 @@ package com.dreifus.app.features.notes.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dreifus.app.data.notes.NotesRepository
+import com.dreifus.app.features.notes.navigation.PinNavigation
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailCommand
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEffect
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEvent
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesIntoMap(AppScope::class)
 class NoteDetailViewModel(
     repository: NotesRepository,
+    val pinNavigation: PinNavigation,
 ) : ViewModel() {
 
     private val store = Store<NoteDetailState, NoteDetailEvent, NoteDetailEvent.Ui, NoteDetailCommand, NoteDetailEffect>(
