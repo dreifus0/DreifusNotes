@@ -36,8 +36,8 @@ data class AppColors(
     val inputTextFilled: Color,
     val inputTextDefault: Color,
     val inputTextError: Color,
-    // Glass
-    val bgGlassPrimary: Color,
+    // Card
+    val bgCardPrimary: Color,
 ) {
 
     val isDarkTheme = backgroundBase.luminance() < 0.5f
@@ -105,7 +105,7 @@ val LocalAppColors = staticCompositionLocalOf {
         inputTextFilled = Color.Unspecified,
         inputTextDefault = Color.Unspecified,
         inputTextError = Color.Unspecified,
-        bgGlassPrimary = Color.Unspecified,
+        bgCardPrimary = Color.Unspecified,
     )
 }
 

@@ -26,7 +26,7 @@ fun GlassIcon(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(color = AppTheme.colors.bgGlassPrimary, shape = CircleShape)
+            .background(color = AppTheme.colors.bgCardPrimary, shape = CircleShape)
             .glassBorder(shape = CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,

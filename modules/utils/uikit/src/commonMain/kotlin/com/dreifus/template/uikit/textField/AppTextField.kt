@@ -78,7 +78,7 @@ fun AppTextField(
         isFocused -> AppTheme.colors.inputBorderFocus
         else -> Color.Transparent
     }
-    val backgroundColor = AppTheme.colors.bgGlassPrimary
+    val backgroundColor = AppTheme.colors.bgCardPrimary
     Column(modifier = modifier) {
         Box(
             modifier = Modifier

@@ -153,6 +153,7 @@ private fun ButtonContentText(
         text = text,
         textAlign = TextAlign.Center,
         style = AppTheme.typography.headlineLarge,
+        color = AppTheme.colors.accentOnPrimary,
     )
 }
 
@@ -190,6 +191,7 @@ private fun ButtonContentTextWithIcon(
             Text(
                 text = text,
                 style = AppTheme.typography.headlineLarge,
+                color = AppTheme.colors.accentOnPrimary,
             )
         }
         if (!isStartIcon) {

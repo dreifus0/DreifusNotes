@@ -162,7 +162,7 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(AppTheme.colors.bgGlassPrimary)
+            .background(AppTheme.colors.bgCardPrimary)
             .glassBorder(shape = shape),
     ) {
         content()

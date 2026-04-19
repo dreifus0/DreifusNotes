@@ -215,7 +215,7 @@ private fun BlockShell(
             ) {
                 Box(
                     modifier = Modifier
-                        .background(AppTheme.colors.bgGlassPrimary, blockShape)
+                        .background(AppTheme.colors.bgCardPrimary, blockShape)
                         .glassBorder(shape = blockShape)
                         .padding(16.dp),
                 ) {

@@ -40,7 +40,7 @@ fun <T> TabBar(
             modifier = Modifier
                 .weight(1f)
                 .clip(TabShape)
-                .background(AppTheme.colors.bgGlassPrimary)
+                .background(AppTheme.colors.bgCardPrimary)
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

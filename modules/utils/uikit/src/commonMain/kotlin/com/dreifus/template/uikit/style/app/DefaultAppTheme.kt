@@ -27,7 +27,7 @@ object DefaultAppTheme : SpecificAppTheme() {
         inputTextFilled = Color(0xFF0B0B0C),
         inputTextDefault = Color(0xFF5A5A5F),
         inputTextError = Color(0xFFA32D2D),
-        bgGlassPrimary = Color(0xFFD4D7DD),
+        bgCardPrimary = Color(0xFFD4D7DD),
     )
 
     override val darkColors = AppColors(
@@ -53,6 +53,6 @@ object DefaultAppTheme : SpecificAppTheme() {
         inputTextFilled = Color(0xFFEDEDEE),
         inputTextDefault = Color(0xFF9898A0),
         inputTextError = Color(0xFFE24B4A),
-        bgGlassPrimary = Color(0xFF38345A),
+        bgCardPrimary = Color(0xFF38345A),
     )
 }
