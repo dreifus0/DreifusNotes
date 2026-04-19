@@ -44,6 +44,7 @@ fun PinDots(
     filledCount: Int,
     totalCount: Int = 4,
     modifier: Modifier = Modifier,
+    dotColor: androidx.compose.ui.graphics.Color = AppTheme.colors.accentPrimary,
 ) {
     Row(
         modifier = modifier,
@@ -57,7 +58,7 @@ fun PinDots(
                     .size(10.dp)
                     .clip(CircleShape)
                     .then(
-                        if (filled) Modifier.background(AppTheme.colors.accentPrimary)
+                        if (filled) Modifier.background(dotColor)
                         else Modifier.border(1.2.dp, AppTheme.colors.contentBorder, CircleShape)
                     ),
             )

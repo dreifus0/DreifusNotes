@@ -18,5 +18,8 @@ kotlin {
             implementation(projects.modules.utils.coreNavigation)
             implementation(projects.modules.data.notes)
         }
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+        }
     }
 }

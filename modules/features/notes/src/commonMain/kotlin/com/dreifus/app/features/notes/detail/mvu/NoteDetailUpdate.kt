@@ -24,6 +24,26 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
             state = state,
             command = NoteDetailCommand.DeleteBlock(event.blockId),
         )
+        NoteDetailEvent.Ui.LockClick -> Next(
+            state = state,
+            effect = NoteDetailEffect.NavigateToPinSetup(state.noteId),
+        )
+        NoteDetailEvent.Ui.PhotoClick -> Next(
+            state = state,
+            effect = NoteDetailEffect.ShowImagePicker,
+        )
+        NoteDetailEvent.Ui.ChecklistClick -> Next(
+            state = state,
+            effect = NoteDetailEffect.ShowChecklistSheet,
+        )
+        is NoteDetailEvent.Ui.PhotoSelected -> if (event.uri.isBlank()) Next(state) else Next(
+            state = state,
+            command = NoteDetailCommand.InsertPhotoBlock(state.noteId, event.uri),
+        )
+        is NoteDetailEvent.Ui.ChecklistConfirmed -> if (event.items.isEmpty()) Next(state) else Next(
+            state = state,
+            command = NoteDetailCommand.InsertChecklistBlock(state.noteId, event.title, event.items),
+        )
         is NoteDetailEvent.NoteLoaded -> Next(
             state = state.copy(title = event.title, color = event.color, isLoading = false),
         )

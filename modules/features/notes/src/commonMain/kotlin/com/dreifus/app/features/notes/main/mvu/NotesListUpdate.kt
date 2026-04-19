@@ -18,7 +18,10 @@ val NotesListUpdate = Update<NotesListState, NotesListEvent, NotesListCommand, N
         )
         is NotesListEvent.Ui.NoteClick -> Next(
             state = state,
-            effect = NotesListEffect.NavigateToNote(event.id),
+            effect = NotesListEffect.NavigateToNote(
+                id = event.id,
+                isProtected = state.notes.find { it.id == event.id }?.isProtected ?: false,
+            ),
         )
     }
 }

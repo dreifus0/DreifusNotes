@@ -6,6 +6,7 @@ data class Note(
     val description: String,
     val color: NoteColor,
     val isProtected: Boolean,
+    val pin: String,
     val encryptedBody: ByteArray?,
     val iv: ByteArray?,
     val salt: ByteArray?,

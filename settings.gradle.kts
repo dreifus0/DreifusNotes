@@ -24,4 +24,5 @@ include(
     ":modules:data:notes",
     ":modules:features:notes",
     ":modules:features:stub",
+    ":modules:features:settings",
 )

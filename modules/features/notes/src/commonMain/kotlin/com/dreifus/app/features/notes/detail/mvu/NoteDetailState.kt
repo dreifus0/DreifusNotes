@@ -13,10 +13,33 @@ data class NoteDetailState(
     val isLoading: Boolean = true,
 )
 
-@Immutable
-data class NoteBlockUiItem(
-    val id: Long,
-    val text: String,
-    val time: String,
-    val dayHeader: String?,
-)
+sealed interface NoteBlockUiItem {
+    val id: Long
+    val dayHeader: String?
+    val time: String
+
+    @Immutable
+    data class Text(
+        override val id: Long,
+        val text: String,
+        override val time: String,
+        override val dayHeader: String?,
+    ) : NoteBlockUiItem
+
+    @Immutable
+    data class Photo(
+        override val id: Long,
+        val uri: String,
+        override val time: String,
+        override val dayHeader: String?,
+    ) : NoteBlockUiItem
+
+    @Immutable
+    data class Checklist(
+        override val id: Long,
+        val title: String,
+        val items: List<String>,
+        override val time: String,
+        override val dayHeader: String?,
+    ) : NoteBlockUiItem
+}

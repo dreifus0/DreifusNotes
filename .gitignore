@@ -26,6 +26,12 @@ render.experimental.xml
 # Keystore files
 *.jks
 *.keystore
+keystore.properties
+
+# iOS signing
+*.p8
+*.p12
+*.mobileprovision
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

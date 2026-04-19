@@ -4,6 +4,7 @@ CREATE TABLE NoteEntity (
     description    TEXT    NOT NULL DEFAULT '',
     color          TEXT    NOT NULL DEFAULT 'Purple',
     is_protected   INTEGER NOT NULL DEFAULT 0,
+    pin            TEXT    NOT NULL DEFAULT '',
     encrypted_body BLOB,
     iv             BLOB,
     salt           BLOB,
@@ -31,8 +32,14 @@ UPDATE NoteEntity
 SET title = ?, description = ?, color = ?, is_protected = ?, encrypted_body = ?, iv = ?, salt = ?, updated_at = ?
 WHERE id = ?;
 
+updatePin:
+UPDATE NoteEntity SET pin = ?, is_protected = ?, updated_at = ? WHERE id = ?;
+
 touchUpdatedAt:
 UPDATE NoteEntity SET updated_at = ? WHERE id = ?;
 
 delete:
 DELETE FROM NoteEntity WHERE id = ?;
+
+deleteAll:
+DELETE FROM NoteEntity;

@@ -1,6 +1,7 @@
 CREATE TABLE NoteBlockEntity (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     note_id    INTEGER NOT NULL REFERENCES NoteEntity(id) ON DELETE CASCADE,
+    type       TEXT    NOT NULL DEFAULT 'TEXT',
     text       TEXT    NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL
 );
@@ -9,8 +10,8 @@ selectByNoteId:
 SELECT * FROM NoteBlockEntity WHERE note_id = ? ORDER BY created_at ASC;
 
 insert:
-INSERT INTO NoteBlockEntity (note_id, text, created_at)
-VALUES (?, ?, ?);
+INSERT INTO NoteBlockEntity (note_id, type, text, created_at)
+VALUES (?, ?, ?, ?);
 
 delete:
 DELETE FROM NoteBlockEntity WHERE id = ?;

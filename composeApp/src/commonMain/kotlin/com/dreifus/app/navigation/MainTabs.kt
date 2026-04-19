@@ -1,7 +1,7 @@
 package com.dreifus.app.navigation
 
 import com.dreifus.app.features.notes.main.NotesListScreen
-import com.dreifus.app.features.stub.ui.StubScreen
+import com.dreifus.app.features.settings.main.SettingsScreen
 import com.dreifus.navigation.screen.regular.RegularScreen
 import com.dreifus.navigation.ui.RootScreenWithTabs
 import com.dreifus.template.uikit.icon.Notes24
@@ -19,7 +19,7 @@ enum class HomeTabs(
     override val screenClass: KClass<out RegularScreen>,
 ) : RootScreenWithTabs.TabData {
     Notes(screenFactory = ::NotesListScreen, screenClass = NotesListScreen::class),
-    Stub(screenFactory = ::StubScreen, screenClass = StubScreen::class),
+    Settings(screenFactory = ::SettingsScreen, screenClass = SettingsScreen::class),
 }
 
 val mainTabs: List<TabInfo<RootScreenWithTabs.TabData>> = listOf(
@@ -31,6 +31,6 @@ val mainTabs: List<TabInfo<RootScreenWithTabs.TabData>> = listOf(
     TabInfo(
         icon = AppIcons.Settings24,
         title = { stringResource(Res.string.tab_settings) },
-        data = HomeTabs.Stub,
+        data = HomeTabs.Settings,
     ),
 )

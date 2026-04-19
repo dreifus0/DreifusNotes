@@ -1,7 +1,6 @@
 package com.dreifus.app
 
 import android.app.Application
-import android.content.Context
 
 class DreifusApplication : Application() {
 
@@ -11,7 +10,8 @@ class DreifusApplication : Application() {
     }
 
     companion object {
-        lateinit var instance: Context
+        // Use only as a last resort when no other DI or context injection is possible.
+        lateinit var instance: Application
             private set
     }
 }

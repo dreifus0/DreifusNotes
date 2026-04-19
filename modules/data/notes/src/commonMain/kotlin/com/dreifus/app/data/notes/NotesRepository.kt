@@ -8,6 +8,7 @@ import com.dreifus.app.data.notes.db.NoteEntity
 import com.dreifus.app.data.notes.db.NotesDatabase
 import com.dreifus.app.data.notes.model.Note
 import com.dreifus.app.data.notes.model.NoteBlock
+import com.dreifus.app.data.notes.model.NoteBlockType
 import com.dreifus.app.data.notes.model.NoteColor
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
@@ -86,13 +87,22 @@ class NotesRepository(
         )
     }
 
+    suspend fun updatePin(id: Long, pin: String) {
+        val now = Clock.System.now().toEpochMilliseconds()
+        noteQueries.updatePin(pin = pin, is_protected = if (pin.isNotEmpty()) 1L else 0L, updated_at = now, id = id)
+    }
+
     suspend fun delete(id: Long) {
         noteQueries.delete(id)
     }
 
-    suspend fun insertBlock(noteId: Long, text: String) {
+    suspend fun deleteAll() {
+        noteQueries.deleteAll()
+    }
+
+    suspend fun insertBlock(noteId: Long, type: NoteBlockType = NoteBlockType.TEXT, text: String) {
         val now = Clock.System.now().toEpochMilliseconds()
-        blockQueries.insert(note_id = noteId, text = text, created_at = now)
+        blockQueries.insert(note_id = noteId, type = type.name, text = text, created_at = now)
         noteQueries.touchUpdatedAt(updated_at = now, id = noteId)
     }
 
@@ -107,6 +117,7 @@ private fun NoteEntity.toDomain() = Note(
     description = description,
     color = runCatching { NoteColor.valueOf(color) }.getOrDefault(NoteColor.Purple),
     isProtected = is_protected != 0L,
+    pin = pin,
     encryptedBody = encrypted_body,
     iv = iv,
     salt = salt,
@@ -117,6 +128,7 @@ private fun NoteEntity.toDomain() = Note(
 private fun NoteBlockEntity.toDomain() = NoteBlock(
     id = id,
     noteId = note_id,
+    type = runCatching { NoteBlockType.valueOf(type) }.getOrDefault(NoteBlockType.TEXT),
     text = text,
     createdAt = created_at,
 )

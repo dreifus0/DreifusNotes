@@ -19,6 +19,8 @@ ksp = "2.3.0-2.0.2"
 sqldelight = "2.0.2"
 sqlcipher = "4.5.4"
 androidx-security = "1.1.0-alpha06"
+androidx-biometric = "1.2.0-alpha02"
+appcompat = "1.7.0"
 kotlinx-datetime = "0.6.1"
 
 [libraries]
@@ -74,6 +76,10 @@ sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", 
 # SQLCipher + Secure storage (Android)
 sqlcipher-android = { module = "net.zetetic:android-database-sqlcipher", version.ref = "sqlcipher" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidx-security" }
+
+# Biometric
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidx-biometric" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 
 # DateTime
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }

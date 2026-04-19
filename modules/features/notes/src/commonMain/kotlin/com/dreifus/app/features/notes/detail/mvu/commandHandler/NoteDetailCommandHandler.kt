@@ -1,6 +1,7 @@
 package com.dreifus.app.features.notes.detail.mvu.commandHandler
 
 import com.dreifus.app.data.notes.NotesRepository
+import com.dreifus.app.data.notes.model.NoteBlockType
 import com.dreifus.app.data.notes.model.NoteColor
 import com.dreifus.app.features.notes.detail.mvu.NoteBlockUiItem
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailCommand
@@ -34,12 +35,22 @@ class NoteDetailInitHandler(
                 val prevDate = if (index > 0) {
                     Instant.fromEpochMilliseconds(rawBlocks[index - 1].createdAt).toLocalDateTime(zone).date
                 } else null
-                NoteBlockUiItem(
-                    id = block.id,
-                    text = block.text,
-                    time = block.createdAt.toTime(zone),
-                    dayHeader = if (prevDate == null || prevDate != date) date.toDayHeader(zone) else null,
-                )
+                val dayHeader = if (prevDate == null || prevDate != date) date.toDayHeader(zone) else null
+                val time = block.createdAt.toTime(zone)
+                when (block.type) {
+                    NoteBlockType.TEXT -> NoteBlockUiItem.Text(block.id, block.text, time, dayHeader)
+                    NoteBlockType.PHOTO -> NoteBlockUiItem.Photo(block.id, block.text, time, dayHeader)
+                    NoteBlockType.CHECKLIST -> {
+                        val lines = block.text.lines()
+                        NoteBlockUiItem.Checklist(
+                            id = block.id,
+                            title = lines.firstOrNull().orEmpty(),
+                            items = lines.drop(1).filter(String::isNotBlank),
+                            time = time,
+                            dayHeader = dayHeader,
+                        )
+                    }
+                }
             }))
         }
     }
@@ -52,7 +63,31 @@ class NoteDetailInsertBlockHandler(
     cancelPreviousOnNewCommand = false,
 ) {
     override suspend fun handleCommand(command: NoteDetailCommand.InsertBlock): Flow<NoteDetailEvent> = flow {
-        repository.insertBlock(command.noteId, command.text)
+        repository.insertBlock(command.noteId, text = command.text)
+        emit(NoteDetailEvent.BlockSent)
+    }
+}
+
+class NoteDetailInsertPhotoBlockHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.InsertPhotoBlock, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.InsertPhotoBlock::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.InsertPhotoBlock): Flow<NoteDetailEvent> = flow {
+        repository.insertBlock(command.noteId, NoteBlockType.PHOTO, command.uri)
+        emit(NoteDetailEvent.BlockSent)
+    }
+}
+
+class NoteDetailInsertChecklistBlockHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.InsertChecklistBlock, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.InsertChecklistBlock::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.InsertChecklistBlock): Flow<NoteDetailEvent> = flow {
+        repository.insertBlock(command.noteId, NoteBlockType.CHECKLIST, "${command.title}\n${command.items.joinToString("\n")}")
         emit(NoteDetailEvent.BlockSent)
     }
 }

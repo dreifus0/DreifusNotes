@@ -47,6 +47,7 @@ kotlin {
             implementation(projects.modules.data.notes)
             implementation(projects.modules.features.notes)
             implementation(projects.modules.features.stub)
+            implementation(projects.modules.features.settings)
         }
     }
 }
