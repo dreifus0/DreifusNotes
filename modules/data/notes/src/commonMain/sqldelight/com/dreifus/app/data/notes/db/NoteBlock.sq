@@ -13,5 +13,8 @@ insert:
 INSERT INTO NoteBlockEntity (note_id, type, text, created_at)
 VALUES (?, ?, ?, ?);
 
+updateText:
+UPDATE NoteBlockEntity SET text = ? WHERE id = ?;
+
 delete:
 DELETE FROM NoteBlockEntity WHERE id = ?;

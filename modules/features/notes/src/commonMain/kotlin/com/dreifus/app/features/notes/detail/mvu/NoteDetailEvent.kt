@@ -4,7 +4,7 @@ import com.dreifus.template.uikit.style.NoteCardColor
 
 sealed interface NoteDetailEvent {
     sealed interface Ui : NoteDetailEvent {
-        data class Init(val noteId: Long) : Ui
+        data class Init(val noteId: Long, val unlockedPin: String? = null) : Ui
         data object BackClick : Ui
         data class InputChanged(val text: String) : Ui
         data object SendClick : Ui

@@ -44,6 +44,9 @@ class NotesRepository(
     suspend fun getById(id: Long): Note? =
         noteQueries.selectById(id).executeAsOneOrNull()?.toDomain()
 
+    suspend fun getBlocksForNote(noteId: Long): List<NoteBlock> =
+        blockQueries.selectByNoteId(noteId).executeAsList().map(NoteBlockEntity::toDomain)
+
     fun observeBlocksForNote(noteId: Long): Flow<List<NoteBlock>> =
         blockQueries.selectByNoteId(noteId)
             .asFlow()
@@ -89,7 +92,37 @@ class NotesRepository(
 
     suspend fun updatePin(id: Long, pin: String) {
         val now = Clock.System.now().toEpochMilliseconds()
-        noteQueries.updatePin(pin = pin, is_protected = if (pin.isNotEmpty()) 1L else 0L, updated_at = now, id = id)
+        val storedPin = if (pin.isEmpty()) "" else PinHasher.hash(pin)
+
+        if (pin.isNotEmpty()) {
+            val note = getById(id)
+            val blocks = getBlocksForNote(id)
+
+            val encDescription = note?.description?.takeIf { it.isNotEmpty() }
+                ?.let { NoteEncryptor.encrypt(it, pin) }
+            val encBlocks = blocks
+                .filter { !it.text.startsWith("ENC:v1:") }
+                .associate { it.id to NoteEncryptor.encrypt(it.text, pin).encodeToString() }
+
+            db.transaction {
+                if (encDescription != null) {
+                    noteQueries.updateEncryptedBody(
+                        description = "",
+                        encrypted_body = encDescription.ciphertext,
+                        iv = encDescription.iv,
+                        salt = encDescription.salt,
+                        updated_at = now,
+                        id = id,
+                    )
+                }
+                for ((blockId, encText) in encBlocks) {
+                    blockQueries.updateText(text = encText, id = blockId)
+                }
+                noteQueries.updatePin(pin = storedPin, is_protected = 1L, updated_at = now, id = id)
+            }
+        } else {
+            noteQueries.updatePin(pin = storedPin, is_protected = 0L, updated_at = now, id = id)
+        }
     }
 
     suspend fun delete(id: Long) {
@@ -104,6 +137,10 @@ class NotesRepository(
         val now = Clock.System.now().toEpochMilliseconds()
         blockQueries.insert(note_id = noteId, type = type.name, text = text, created_at = now)
         noteQueries.touchUpdatedAt(updated_at = now, id = noteId)
+    }
+
+    suspend fun updateBlockText(blockId: Long, text: String) {
+        blockQueries.updateText(text = text, id = blockId)
     }
 
     suspend fun deleteBlock(blockId: Long) {

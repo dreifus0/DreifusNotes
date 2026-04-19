@@ -6,8 +6,8 @@ import com.yavorcool.mvucore.Update
 val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailCommand, NoteDetailEffect> { state, event ->
     when (event) {
         is NoteDetailEvent.Ui.Init -> Next(
-            state = state.copy(noteId = event.noteId, isLoading = true),
-            command = NoteDetailCommand.Init(event.noteId),
+            state = state.copy(noteId = event.noteId, isLoading = true, unlockedPin = event.unlockedPin),
+            command = NoteDetailCommand.Init(event.noteId, event.unlockedPin),
         )
         NoteDetailEvent.Ui.BackClick -> Next(
             state = state,
@@ -18,7 +18,7 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
         )
         NoteDetailEvent.Ui.SendClick -> if (state.inputText.isBlank()) Next(state) else Next(
             state = state.copy(inputText = ""),
-            command = NoteDetailCommand.InsertBlock(state.noteId, state.inputText),
+            command = NoteDetailCommand.InsertBlock(state.noteId, state.inputText, state.unlockedPin),
         )
         is NoteDetailEvent.Ui.DeleteBlockClick -> Next(
             state = state,
@@ -38,11 +38,11 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
         )
         is NoteDetailEvent.Ui.PhotoSelected -> if (event.uri.isBlank()) Next(state) else Next(
             state = state,
-            command = NoteDetailCommand.InsertPhotoBlock(state.noteId, event.uri),
+            command = NoteDetailCommand.InsertPhotoBlock(state.noteId, event.uri, state.unlockedPin),
         )
         is NoteDetailEvent.Ui.ChecklistConfirmed -> if (event.items.isEmpty()) Next(state) else Next(
             state = state,
-            command = NoteDetailCommand.InsertChecklistBlock(state.noteId, event.title, event.items),
+            command = NoteDetailCommand.InsertChecklistBlock(state.noteId, event.title, event.items, state.unlockedPin),
         )
         is NoteDetailEvent.NoteLoaded -> Next(
             state = state.copy(title = event.title, color = event.color, isLoading = false),

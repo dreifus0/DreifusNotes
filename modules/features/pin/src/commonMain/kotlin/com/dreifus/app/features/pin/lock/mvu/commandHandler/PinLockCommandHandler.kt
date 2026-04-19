@@ -1,6 +1,7 @@
 package com.dreifus.app.features.pin.lock.mvu.commandHandler
 
 import com.dreifus.app.data.notes.NotesRepository
+import com.dreifus.app.data.notes.PinHasher
 import com.dreifus.app.features.pin.lock.mvu.PinLockCommand
 import com.dreifus.app.features.pin.lock.mvu.PinLockEvent
 import com.yavorcool.mvucore.FilteringHandlerToFlow
@@ -15,7 +16,7 @@ class PinLockVerifyPinHandler(
 ) {
     override suspend fun handleCommand(command: PinLockCommand.VerifyPin): Flow<PinLockEvent> = flow {
         val note = repository.getById(command.noteId)
-        if (note != null && note.pin == command.pin) {
+        if (note != null && note.pin.isNotEmpty() && PinHasher.verify(command.pin, note.pin)) {
             emit(PinLockEvent.PinVerified)
         } else {
             emit(PinLockEvent.PinRejected)

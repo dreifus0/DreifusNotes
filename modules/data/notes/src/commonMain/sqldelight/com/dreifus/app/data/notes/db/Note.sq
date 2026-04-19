@@ -35,6 +35,11 @@ WHERE id = ?;
 updatePin:
 UPDATE NoteEntity SET pin = ?, is_protected = ?, updated_at = ? WHERE id = ?;
 
+updateEncryptedBody:
+UPDATE NoteEntity
+SET description = ?, encrypted_body = ?, iv = ?, salt = ?, updated_at = ?
+WHERE id = ?;
+
 touchUpdatedAt:
 UPDATE NoteEntity SET updated_at = ? WHERE id = ?;
 

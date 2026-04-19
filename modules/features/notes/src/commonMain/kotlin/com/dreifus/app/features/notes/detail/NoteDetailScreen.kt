@@ -60,7 +60,10 @@ import com.dreifus.template.uikit.textField.AppTextField
 import com.dreifus.template.uikit.toolbar.AppToolbar
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 
-class NoteDetailScreen(private val noteId: Long) : RegularScreen {
+class NoteDetailScreen(
+    private val noteId: Long,
+    private val unlockedPin: String? = null,
+) : RegularScreen {
 
     @Composable
     override fun Content() {
@@ -74,7 +77,7 @@ class NoteDetailScreen(private val noteId: Long) : RegularScreen {
         }
 
         LaunchedEffect(Unit) {
-            vm.dispatch(NoteDetailEvent.Ui.Init(noteId))
+            vm.dispatch(NoteDetailEvent.Ui.Init(noteId, unlockedPin))
         }
         LaunchedEffect(Unit) {
             vm.effects.collect { effect ->

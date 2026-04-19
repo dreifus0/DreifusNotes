@@ -31,7 +31,7 @@ val PinLockUpdate = Update<PinLockState, PinLockEvent, PinLockCommand, PinLockEf
 
         PinLockEvent.PinVerified -> Next(
             state = state,
-            effect = PinLockEffect.NavigateToNote(state.noteId),
+            effect = PinLockEffect.NavigateToNote(state.noteId, state.enteredPin),
         )
 
         PinLockEvent.PinRejected -> Next(

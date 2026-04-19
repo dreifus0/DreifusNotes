@@ -20,7 +20,7 @@ class PinNavigationImpl(
         navControllersHolder.regular.navigate(PinSetupScreen(noteId))
     }
 
-    override fun openPinLock(noteId: Long, onUnlocked: (noteId: Long) -> Unit) {
+    override fun openPinLock(noteId: Long, onUnlocked: (noteId: Long, pin: String) -> Unit) {
         navControllersHolder.regular.navigate(PinLockScreen(noteId, onUnlocked))
     }
 }

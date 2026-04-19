@@ -40,7 +40,7 @@ import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 class PinLockScreen(
     private val noteId: Long,
-    private val onUnlocked: (noteId: Long) -> Unit,
+    private val onUnlocked: (noteId: Long, pin: String) -> Unit,
 ) : RegularScreen {
 
     @Composable
@@ -55,7 +55,7 @@ class PinLockScreen(
         LaunchedEffect(Unit) {
             vm.effects.collect { effect ->
                 when (effect) {
-                    is PinLockEffect.NavigateToNote -> onUnlocked(effect.noteId)
+                    is PinLockEffect.NavigateToNote -> onUnlocked(effect.noteId, effect.pin)
                     PinLockEffect.NavigateBack -> regularNav.pop()
                 }
             }

@@ -1,6 +1,9 @@
 package com.dreifus.app.features.notes.detail.mvu.commandHandler
 
+import com.dreifus.app.data.notes.NoteEncryptor
 import com.dreifus.app.data.notes.NotesRepository
+import com.dreifus.app.data.notes.decodeEncryptedData
+import com.dreifus.app.data.notes.encodeToString
 import com.dreifus.app.data.notes.model.NoteBlockType
 import com.dreifus.app.data.notes.model.NoteColor
 import com.dreifus.app.features.notes.detail.mvu.NoteBlockUiItem
@@ -37,11 +40,12 @@ class NoteDetailInitHandler(
                 } else null
                 val dayHeader = if (prevDate == null || prevDate != date) date.toDayHeader(zone) else null
                 val time = block.createdAt.toTime(zone)
+                val text = block.text.decryptIfEncoded(command.unlockedPin)
                 when (block.type) {
-                    NoteBlockType.TEXT -> NoteBlockUiItem.Text(block.id, block.text, time, dayHeader)
-                    NoteBlockType.PHOTO -> NoteBlockUiItem.Photo(block.id, block.text, time, dayHeader)
+                    NoteBlockType.TEXT -> NoteBlockUiItem.Text(block.id, text, time, dayHeader)
+                    NoteBlockType.PHOTO -> NoteBlockUiItem.Photo(block.id, text, time, dayHeader)
                     NoteBlockType.CHECKLIST -> {
-                        val lines = block.text.lines()
+                        val lines = text.lines()
                         NoteBlockUiItem.Checklist(
                             id = block.id,
                             title = lines.firstOrNull().orEmpty(),
@@ -63,7 +67,8 @@ class NoteDetailInsertBlockHandler(
     cancelPreviousOnNewCommand = false,
 ) {
     override suspend fun handleCommand(command: NoteDetailCommand.InsertBlock): Flow<NoteDetailEvent> = flow {
-        repository.insertBlock(command.noteId, text = command.text)
+        val text = command.pin?.let { NoteEncryptor.encrypt(command.text, it).encodeToString() } ?: command.text
+        repository.insertBlock(command.noteId, text = text)
         emit(NoteDetailEvent.BlockSent)
     }
 }
@@ -75,7 +80,8 @@ class NoteDetailInsertPhotoBlockHandler(
     cancelPreviousOnNewCommand = false,
 ) {
     override suspend fun handleCommand(command: NoteDetailCommand.InsertPhotoBlock): Flow<NoteDetailEvent> = flow {
-        repository.insertBlock(command.noteId, NoteBlockType.PHOTO, command.uri)
+        val uri = command.pin?.let { NoteEncryptor.encrypt(command.uri, it).encodeToString() } ?: command.uri
+        repository.insertBlock(command.noteId, NoteBlockType.PHOTO, uri)
         emit(NoteDetailEvent.BlockSent)
     }
 }
@@ -87,7 +93,9 @@ class NoteDetailInsertChecklistBlockHandler(
     cancelPreviousOnNewCommand = false,
 ) {
     override suspend fun handleCommand(command: NoteDetailCommand.InsertChecklistBlock): Flow<NoteDetailEvent> = flow {
-        repository.insertBlock(command.noteId, NoteBlockType.CHECKLIST, "${command.title}\n${command.items.joinToString("\n")}")
+        val raw = "${command.title}\n${command.items.joinToString("\n")}"
+        val text = command.pin?.let { NoteEncryptor.encrypt(raw, it).encodeToString() } ?: raw
+        repository.insertBlock(command.noteId, NoteBlockType.CHECKLIST, text)
         emit(NoteDetailEvent.BlockSent)
     }
 }
@@ -102,6 +110,12 @@ class NoteDetailDeleteBlockHandler(
         repository.deleteBlock(command.blockId)
         emit(NoteDetailEvent.BlockDeleted)
     }
+}
+
+private fun String.decryptIfEncoded(pin: String?): String {
+    if (pin == null) return this
+    val enc = decodeEncryptedData() ?: return this
+    return NoteEncryptor.decrypt(enc.ciphertext, enc.iv, enc.salt, pin) ?: this
 }
 
 private fun NoteColor.toCardColor() = when (this) {
