@@ -16,8 +16,8 @@ class PinNavigationImpl(
     private val navControllersHolder: NavControllersHolder,
 ) : PinNavigation {
 
-    override fun openPinSetup(noteId: Long) {
-        navControllersHolder.regular.navigate(PinSetupScreen(noteId))
+    override fun openPinSetup(noteId: Long, onSetup: (noteId: Long, pin: String) -> Unit) {
+        navControllersHolder.regular.navigate(PinSetupScreen(noteId, onSetup))
     }
 
     override fun openPinLock(noteId: Long, onUnlocked: (noteId: Long, pin: String) -> Unit) {

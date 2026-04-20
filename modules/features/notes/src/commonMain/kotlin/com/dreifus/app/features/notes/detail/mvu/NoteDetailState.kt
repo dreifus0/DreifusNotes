@@ -11,6 +11,7 @@ data class NoteDetailState(
     val blocks: List<NoteBlockUiItem> = emptyList(),
     val inputText: String = "",
     val isLoading: Boolean = true,
+    val isBlocksLoading: Boolean = true,
     val unlockedPin: String? = null,
 )
 

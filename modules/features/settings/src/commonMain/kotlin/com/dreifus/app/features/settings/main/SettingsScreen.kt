@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,11 +54,13 @@ class SettingsScreen : RootScreenWithTabs {
     override fun Content() {
         val vm = metroViewModel<SettingsViewModel>()
         val state by vm.state.collectAsStateWithLifecycle()
+        val uriHandler = LocalUriHandler.current
 
         LaunchedEffect(Unit) {
             vm.effects.collect { effect ->
                 when (effect) {
                     SettingsEffect.DataReset -> Unit
+                    is SettingsEffect.OpenUrl -> uriHandler.openUri(effect.url)
                 }
             }
         }
@@ -142,11 +145,11 @@ private fun SettingsContent(
                         },
                     )
                     SettingsRow(
-                        label = "Privacy",
+                        label = "Privacy Policy",
                         iconBackground = Color(0xFFF5C4B3),
                         icon = { AppIcons.Lock24(tint = Color(0xFF3A1608)) },
                         showDivider = false,
-                        onClick = {},
+                        onClick = { onEvent(SettingsEvent.Ui.PrivacyPolicyClick) },
                         trailing = { AppIcons.ChevronRight24(tint = AppTheme.colors.contentTertiary) },
                     )
                 }

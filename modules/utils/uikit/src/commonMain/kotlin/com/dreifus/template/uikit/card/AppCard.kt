@@ -6,10 +6,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -50,33 +50,33 @@ fun AppCard(
                 indication = ripple(),
                 onClick = onClick,
             )
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            if (isLocked) {
-                AppIcons.Lock24(tint = palette.title)
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                if (isLocked) {
+                    AppIcons.Lock24(modifier = Modifier.size(16.dp), tint = palette.title)
+                }
+                Text(
+                    text = title,
+                    style = AppTheme.typography.headlineMedium,
+                    color = palette.title,
+                    maxLines = 1,
+                )
             }
+
             Text(
-                text = title,
-                style = AppTheme.typography.headlineMedium,
-                color = palette.title,
+                text = body,
+                style = AppTheme.typography.bodySmall,
+                color = palette.body,
                 maxLines = 1,
+                modifier = if (isLocked) Modifier.blur(3.dp) else Modifier,
             )
         }
-
-        Text(
-            text = body,
-            style = AppTheme.typography.bodySmall,
-            color = palette.body,
-            maxLines = 1,
-            modifier = if (isLocked) Modifier.blur(3.dp) else Modifier,
-        )
-
-        Spacer(Modifier.weight(1f))
 
         Text(
             text = date,

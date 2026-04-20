@@ -6,7 +6,7 @@ import com.yavorcool.mvucore.Update
 val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailCommand, NoteDetailEffect> { state, event ->
     when (event) {
         is NoteDetailEvent.Ui.Init -> Next(
-            state = state.copy(noteId = event.noteId, isLoading = true, unlockedPin = event.unlockedPin),
+            state = state.copy(noteId = event.noteId, isLoading = true, isBlocksLoading = true, unlockedPin = event.unlockedPin),
             command = NoteDetailCommand.Init(event.noteId, event.unlockedPin),
         )
         NoteDetailEvent.Ui.BackClick -> Next(
@@ -48,7 +48,7 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
             state = state.copy(title = event.title, color = event.color, isLoading = false),
         )
         is NoteDetailEvent.BlocksLoaded -> Next(
-            state = state.copy(blocks = event.blocks),
+            state = state.copy(blocks = event.blocks, isBlocksLoading = false),
         )
         NoteDetailEvent.BlockSent -> Next(state = state)
         NoteDetailEvent.BlockDeleted -> Next(state = state)

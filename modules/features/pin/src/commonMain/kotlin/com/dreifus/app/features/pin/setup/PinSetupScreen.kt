@@ -39,7 +39,10 @@ import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 
-class PinSetupScreen(private val noteId: Long) : RegularScreen {
+class PinSetupScreen(
+    private val noteId: Long,
+    private val onSetup: (noteId: Long, pin: String) -> Unit,
+) : RegularScreen {
 
     @Composable
     override fun Content() {
@@ -54,6 +57,10 @@ class PinSetupScreen(private val noteId: Long) : RegularScreen {
             vm.effects.collect { effect ->
                 when (effect) {
                     PinSetupEffect.NavigateBack -> regularNav.pop()
+                    is PinSetupEffect.PinConfirmed -> {
+                        regularNav.pop()
+                        onSetup(effect.noteId, effect.pin)
+                    }
                 }
             }
         }

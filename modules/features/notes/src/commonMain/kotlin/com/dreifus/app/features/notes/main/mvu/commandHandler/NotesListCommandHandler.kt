@@ -34,7 +34,7 @@ class NotesListCommandHandler(
                 NoteUiItem(
                     id = note.id,
                     title = note.title,
-                    body = note.description,
+                    body = if (note.isProtected) "•••••••••••••••••••••••••••••" else note.description,
                     date = note.updatedAt.toDisplayDate(),
                     color = note.color.toCardColor(),
                     isProtected = note.isProtected,

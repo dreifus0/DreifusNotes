@@ -1,5 +1,11 @@
 package com.dreifus.app.features.notes.detail
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -34,6 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -83,7 +91,9 @@ class NoteDetailScreen(
             vm.effects.collect { effect ->
                 when (effect) {
                     NoteDetailEffect.NavigateBack -> regularNav.pop()
-                    is NoteDetailEffect.NavigateToPinSetup -> vm.pinNavigation.openPinSetup(effect.noteId)
+                    is NoteDetailEffect.NavigateToPinSetup -> vm.pinNavigation.openPinSetup(effect.noteId) { id, pin ->
+                        regularNav.replaceLast(NoteDetailScreen(id, pin))
+                    }
                     NoteDetailEffect.ShowImagePicker -> imagePickerLauncher()
                     NoteDetailEffect.ShowChecklistSheet -> bottomSheetNav.navigate(
                         CreateChecklistBottomSheet { title, items ->
@@ -136,24 +146,28 @@ private fun NoteDetailContent(
                 .background(palette.background, RoundedCornerShape(12.dp)),
         )
 
-        val listState = rememberLazyListState()
-        val lastBlockId = state.blocks.lastOrNull()?.id
-        LaunchedEffect(lastBlockId) {
-            val total = listState.layoutInfo.totalItemsCount
-            if (total > 0) listState.animateScrollToItem(total - 1)
-        }
+        if (state.isBlocksLoading) {
+            BlocksShimmer(modifier = Modifier.weight(1f).fillMaxWidth())
+        } else {
+            val listState = rememberLazyListState()
+            val lastBlockId = state.blocks.lastOrNull()?.id
+            LaunchedEffect(lastBlockId) {
+                val total = listState.layoutInfo.totalItemsCount
+                if (total > 0) listState.animateScrollToItem(total - 1)
+            }
 
-        LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            state = listState,
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            items(state.blocks, key = { it.id }) { block ->
-                BlockItemWithHeader(
-                    block = block,
-                    onDelete = { onEvent(NoteDetailEvent.Ui.DeleteBlockClick(block.id)) },
-                )
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                state = listState,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                items(state.blocks, key = { it.id }) { block ->
+                    BlockItemWithHeader(
+                        block = block,
+                        onDelete = { onEvent(NoteDetailEvent.Ui.DeleteBlockClick(block.id)) },
+                    )
+                }
             }
         }
 
@@ -360,6 +374,54 @@ private fun BlockInputBar(
             }
         }
     }
+}
+
+@Composable
+private fun BlocksShimmer(modifier: Modifier = Modifier) {
+    val brush = shimmerBrush()
+    Column(
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        repeat(4) { index ->
+            val widthFraction = when (index % 4) {
+                0 -> 0.85f
+                1 -> 0.60f
+                2 -> 0.75f
+                else -> 0.50f
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(widthFraction)
+                    .height(56.dp)
+                    .background(brush, blockShape),
+            )
+        }
+    }
+}
+
+@Composable
+private fun shimmerBrush(): Brush {
+    val colors = listOf(
+        AppTheme.colors.bgCardPrimary,
+        AppTheme.colors.backgroundSecondary,
+        AppTheme.colors.bgCardPrimary,
+    )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val x by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1200f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "shimmerX",
+    )
+    return Brush.linearGradient(
+        colors = colors,
+        start = Offset(x - 400f, 0f),
+        end = Offset(x, 0f),
+    )
 }
 
 @Preview

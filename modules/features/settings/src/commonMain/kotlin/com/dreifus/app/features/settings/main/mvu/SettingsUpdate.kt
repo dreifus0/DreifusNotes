@@ -8,6 +8,10 @@ val SettingsUpdate = Update<SettingsState, SettingsEvent, SettingsCommand, Setti
         SettingsEvent.Ui.ResetDataClick -> Next(
             state = state.copy(isBiometricPending = true),
         )
+        SettingsEvent.Ui.PrivacyPolicyClick -> Next(
+            state = state,
+            effect = SettingsEffect.OpenUrl("https://github.com/dreifus0/DreifusNotes/blob/main/PRIVACY_POLICY.md"),
+        )
         SettingsEvent.Ui.BiometricSuccess -> Next(
             state = state.copy(isBiometricPending = false, isResetting = true),
             command = SettingsCommand.ResetAllData,

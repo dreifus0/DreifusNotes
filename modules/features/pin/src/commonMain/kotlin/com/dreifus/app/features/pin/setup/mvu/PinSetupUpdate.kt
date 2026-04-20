@@ -57,6 +57,6 @@ val PinSetupUpdate = Update<PinSetupState, PinSetupEvent, PinSetupCommand, PinSe
             )
         }
 
-        PinSetupEvent.PinSaved -> Next(state, effect = PinSetupEffect.NavigateBack)
+        PinSetupEvent.PinSaved -> Next(state, effect = PinSetupEffect.PinConfirmed(state.noteId, state.firstPin))
     }
 }

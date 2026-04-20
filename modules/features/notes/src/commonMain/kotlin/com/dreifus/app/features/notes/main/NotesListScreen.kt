@@ -64,8 +64,7 @@ class NotesListScreen : RootScreenWithTabs {
                     is NotesListEffect.NavigateToNewNote -> bottomSheetNav.navigate(CreateNoteScreen())
                     is NotesListEffect.NavigateToNote -> {
                         if (effect.isProtected) vm.pinNavigation.openPinLock(effect.id) { id, pin ->
-                            regularNav.pop()
-                            regularNav.navigate(NoteDetailScreen(id, pin))
+                            regularNav.replaceLast(NoteDetailScreen(id, pin))
                         } else regularNav.navigate(NoteDetailScreen(effect.id))
                     }
                 }

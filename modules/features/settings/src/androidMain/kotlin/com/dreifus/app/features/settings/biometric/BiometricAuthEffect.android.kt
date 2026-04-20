@@ -24,6 +24,13 @@ actual fun BiometricAuthEffect(
             onAuthenticated()
             return@LaunchedEffect
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val manager = context.getSystemService(android.hardware.biometrics.BiometricManager::class.java)
+            if (manager == null || manager.canAuthenticate() != android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS) {
+                onAuthenticated()
+                return@LaunchedEffect
+            }
+        }
         showBiometricPrompt(
             context = context,
             title = title,
@@ -51,7 +58,11 @@ private fun showBiometricPrompt(
             onAuthenticated()
         }
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-            onDismissed()
+            when (errorCode) {
+                BiometricPrompt.BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                BiometricPrompt.BIOMETRIC_ERROR_NO_BIOMETRICS -> onAuthenticated()
+                else -> onDismissed()
+            }
         }
     }
     BiometricPrompt.Builder(context)
