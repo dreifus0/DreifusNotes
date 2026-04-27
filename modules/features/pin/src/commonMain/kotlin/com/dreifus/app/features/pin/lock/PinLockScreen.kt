@@ -37,6 +37,10 @@ import com.dreifus.template.uikit.preview.AppPreview
 import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import dreifusnotes.modules.features.pin.generated.resources.Res
+import dreifusnotes.modules.features.pin.generated.resources.pin_lock_subtitle
+import dreifusnotes.modules.features.pin.generated.resources.pin_lock_title
+import org.jetbrains.compose.resources.stringResource
 
 class PinLockScreen(
     private val noteId: Long,
@@ -98,7 +102,7 @@ private fun PinLockContent(
             Spacer(Modifier.height(22.dp))
 
             Text(
-                text = "Enter passcode",
+                text = stringResource(Res.string.pin_lock_title),
                 style = AppTheme.typography.heading4,
                 color = AppTheme.colors.contentPrimary,
             )
@@ -106,7 +110,7 @@ private fun PinLockContent(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "This note is locked. Enter your 4-digit\npasscode to view it.",
+                text = stringResource(Res.string.pin_lock_subtitle),
                 style = AppTheme.typography.bodyMedium,
                 color = AppTheme.colors.contentSecondary,
                 textAlign = TextAlign.Center,

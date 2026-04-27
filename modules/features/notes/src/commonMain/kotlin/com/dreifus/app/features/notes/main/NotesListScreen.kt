@@ -48,6 +48,13 @@ import com.dreifus.template.uikit.style.AppTheme
 import com.dreifus.template.uikit.style.NoteCardColor
 import com.dreifus.template.uikit.textField.AppTextField
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import dreifusnotes.modules.features.notes.generated.resources.Res
+import dreifusnotes.modules.features.notes.generated.resources.notes_create_button
+import dreifusnotes.modules.features.notes.generated.resources.notes_empty_description
+import dreifusnotes.modules.features.notes.generated.resources.notes_empty_title
+import dreifusnotes.modules.features.notes.generated.resources.notes_search_placeholder
+import dreifusnotes.modules.features.notes.generated.resources.notes_title
+import org.jetbrains.compose.resources.stringResource
 
 class NotesListScreen : RootScreenWithTabs {
 
@@ -104,7 +111,7 @@ private fun NotesListContent(
             AppTextField(
                 value = state.query,
                 onValueChange = { onEvent(NotesListEvent.Ui.QueryChanged(it)) },
-                labelText = "Search notes",
+                labelText = stringResource(Res.string.notes_search_placeholder),
                 leadingIcon = AppIcons.Search24,
                 imeAction = ImeAction.Search,
             )
@@ -137,7 +144,7 @@ private fun NotesEmptyState(onCreateClick: () -> Unit) {
         Spacer(Modifier.height(28.dp))
 
         Text(
-            text = "No notes yet",
+            text = stringResource(Res.string.notes_empty_title),
             style = AppTheme.typography.heading4,
             color = AppTheme.colors.contentPrimary,
         )
@@ -145,7 +152,7 @@ private fun NotesEmptyState(onCreateClick: () -> Unit) {
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "Jot down an idea, a list, a moment.\nTap the + to create your first note.",
+            text = stringResource(Res.string.notes_empty_description),
             style = AppTheme.typography.bodyMedium,
             color = AppTheme.colors.contentSecondary,
             textAlign = TextAlign.Center,
@@ -154,7 +161,7 @@ private fun NotesEmptyState(onCreateClick: () -> Unit) {
         Spacer(Modifier.height(24.dp))
 
         AppButton(
-            text = "Create a note",
+            text = stringResource(Res.string.notes_create_button),
             onClick = onCreateClick,
         )
 
@@ -227,7 +234,7 @@ private fun NotesListHeader(onAddClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
-            text = "Notes",
+            text = stringResource(Res.string.notes_title),
             style = AppTheme.typography.heading3,
             color = AppTheme.colors.contentPrimary,
         )

@@ -1,0 +1,45 @@
+<resources>
+    <!-- Notes list -->
+    <string name="notes_title">Notes</string>
+    <string name="notes_search_placeholder">Search notes</string>
+    <string name="notes_empty_title">No notes yet</string>
+    <string name="notes_empty_description">Jot down an idea, a list, a moment.\nTap the + to create your first note.</string>
+    <string name="notes_create_button">Create a note</string>
+
+    <!-- Create note -->
+    <string name="create_note_title">New note</string>
+    <string name="create_note_title_placeholder">Title</string>
+    <string name="create_note_description_placeholder">Description</string>
+    <string name="create_note_color_label">Color</string>
+    <string name="create_note_button">Create</string>
+
+    <!-- Checklist sheet -->
+    <string name="checklist_title">New checklist</string>
+    <string name="checklist_title_placeholder">Title (optional)</string>
+    <string name="checklist_item_placeholder">Item text…</string>
+    <string name="checklist_add_button">Add to note</string>
+
+    <!-- Note detail -->
+    <string name="note_detail_input_placeholder">Add to note…</string>
+    <string name="note_detail_photo_label">Photo</string>
+    <string name="note_detail_delete">Delete</string>
+    <string name="note_detail_add_photo">Photo</string>
+    <string name="note_detail_add_checklist">Checklist</string>
+    <string name="note_block_copy">Copy</string>
+    <string name="note_block_edit">Edit</string>
+    <string name="note_block_edit_title">Edit block</string>
+    <string name="note_block_edit_save">Save</string>
+    <string name="note_block_edit_cancel">Cancel</string>
+
+    <!-- Note detail toolbar menu -->
+    <string name="note_menu_rename">Rename</string>
+    <string name="note_menu_rename_title">Rename note</string>
+    <string name="note_menu_rename_label">New name</string>
+    <string name="note_menu_change_color">Change color</string>
+    <string name="note_menu_change_color_title">Choose color</string>
+    <string name="note_menu_share">Share</string>
+    <string name="note_menu_delete">Delete note</string>
+    <string name="note_menu_delete_title">Delete note</string>
+    <string name="note_menu_delete_message">This action cannot be undone.</string>
+    <string name="note_menu_delete_confirm">Delete</string>
+</resources>

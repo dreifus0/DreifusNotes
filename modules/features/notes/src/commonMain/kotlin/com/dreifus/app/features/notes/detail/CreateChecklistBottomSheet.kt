@@ -34,6 +34,12 @@ import com.dreifus.template.uikit.preview.AppPreview
 import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 import com.dreifus.template.uikit.textField.AppTextField
+import dreifusnotes.modules.features.notes.generated.resources.Res
+import dreifusnotes.modules.features.notes.generated.resources.checklist_add_button
+import dreifusnotes.modules.features.notes.generated.resources.checklist_item_placeholder
+import dreifusnotes.modules.features.notes.generated.resources.checklist_title
+import dreifusnotes.modules.features.notes.generated.resources.checklist_title_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 class CreateChecklistBottomSheet(
     private val onConfirm: (title: String, items: List<String>) -> Unit,
@@ -88,7 +94,7 @@ private fun CreateChecklistContent(onConfirm: (title: String, items: List<String
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "New checklist",
+                text = stringResource(Res.string.checklist_title),
                 style = AppTheme.typography.heading4,
                 color = AppTheme.colors.contentPrimary,
             )
@@ -96,7 +102,7 @@ private fun CreateChecklistContent(onConfirm: (title: String, items: List<String
             AppTextField(
                 value = titleText,
                 onValueChange = { titleText = it },
-                labelText = "Title (optional)",
+                labelText = stringResource(Res.string.checklist_title_placeholder),
                 imeAction = ImeAction.Next,
             )
 
@@ -135,7 +141,7 @@ private fun CreateChecklistContent(onConfirm: (title: String, items: List<String
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier.weight(1f),
-                    labelText = "Item text…",
+                    labelText = stringResource(Res.string.checklist_item_placeholder),
                     imeAction = ImeAction.Done,
                     keyboardActions = KeyboardActions(onDone = { addCurrentItem() }),
                 )
@@ -147,7 +153,7 @@ private fun CreateChecklistContent(onConfirm: (title: String, items: List<String
 
             AppButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Add to note",
+                text = stringResource(Res.string.checklist_add_button),
                 status = if (items.isEmpty()) ButtonStatus.Disabled else ButtonStatus.Enabled,
                 onClick = { onConfirm(titleText.trim(), items) },
             )

@@ -38,6 +38,13 @@ import com.dreifus.template.uikit.preview.AppPreview
 import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import dreifusnotes.modules.features.pin.generated.resources.Res
+import dreifusnotes.modules.features.pin.generated.resources.pin_setup_error
+import dreifusnotes.modules.features.pin.generated.resources.pin_setup_subtitle_confirm
+import dreifusnotes.modules.features.pin.generated.resources.pin_setup_subtitle_enter
+import dreifusnotes.modules.features.pin.generated.resources.pin_setup_title_confirm
+import dreifusnotes.modules.features.pin.generated.resources.pin_setup_title_enter
+import org.jetbrains.compose.resources.stringResource
 
 class PinSetupScreen(
     private val noteId: Long,
@@ -101,7 +108,11 @@ private fun PinSetupContent(
 
             Spacer(Modifier.height(22.dp))
 
-            val title = if (state.step == PinSetupStep.ENTER) "Create passcode" else "Confirm passcode"
+            val title = if (state.step == PinSetupStep.ENTER) {
+                stringResource(Res.string.pin_setup_title_enter)
+            } else {
+                stringResource(Res.string.pin_setup_title_confirm)
+            }
             Text(
                 text = title,
                 style = AppTheme.typography.heading4,
@@ -111,9 +122,9 @@ private fun PinSetupContent(
             Spacer(Modifier.height(8.dp))
 
             val subtitle = when {
-                state.isError -> "Passcodes didn't match.\nPlease try again."
-                state.step == PinSetupStep.ENTER -> "Set a 4-digit passcode\nto protect this note."
-                else -> "Enter your passcode\none more time."
+                state.isError -> stringResource(Res.string.pin_setup_error)
+                state.step == PinSetupStep.ENTER -> stringResource(Res.string.pin_setup_subtitle_enter)
+                else -> stringResource(Res.string.pin_setup_subtitle_confirm)
             }
             val subtitleColor: Color by animateColorAsState(
                 targetValue = if (state.isError) AppTheme.colors.accentError else AppTheme.colors.contentSecondary,

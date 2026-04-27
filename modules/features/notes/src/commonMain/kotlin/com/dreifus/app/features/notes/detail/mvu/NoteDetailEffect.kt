@@ -5,4 +5,6 @@ sealed interface NoteDetailEffect {
     data class NavigateToPinSetup(val noteId: Long) : NoteDetailEffect
     data object ShowImagePicker : NoteDetailEffect
     data object ShowChecklistSheet : NoteDetailEffect
+    data class CopyToClipboard(val text: String) : NoteDetailEffect
+    data class ShareNote(val text: String) : NoteDetailEffect
 }

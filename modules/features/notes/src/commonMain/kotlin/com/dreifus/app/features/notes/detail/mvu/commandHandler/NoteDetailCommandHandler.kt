@@ -28,36 +28,46 @@ class NoteDetailInitHandler(
     NoteDetailCommand.Init::class,
     cancelPreviousOnNewCommand = false,
 ) {
-    override suspend fun handleCommand(command: NoteDetailCommand.Init): Flow<NoteDetailEvent> = flow {
-        val note = repository.getById(command.noteId) ?: return@flow
-        emit(NoteDetailEvent.NoteLoaded(note.title, note.color.toCardColor()))
-        repository.observeBlocksForNote(command.noteId).collect { rawBlocks ->
-            val zone = TimeZone.currentSystemDefault()
-            emit(NoteDetailEvent.BlocksLoaded(rawBlocks.mapIndexed { index, block ->
-                val date = Instant.fromEpochMilliseconds(block.createdAt).toLocalDateTime(zone).date
-                val prevDate = if (index > 0) {
-                    Instant.fromEpochMilliseconds(rawBlocks[index - 1].createdAt).toLocalDateTime(zone).date
-                } else null
-                val dayHeader = if (prevDate == null || prevDate != date) date.toDayHeader(zone) else null
-                val time = block.createdAt.toTime(zone)
-                val text = block.text.decryptIfEncoded(command.unlockedPin)
-                when (block.type) {
-                    NoteBlockType.TEXT -> NoteBlockUiItem.Text(block.id, text, time, dayHeader)
-                    NoteBlockType.PHOTO -> NoteBlockUiItem.Photo(block.id, text, time, dayHeader)
-                    NoteBlockType.CHECKLIST -> {
-                        val lines = text.lines()
-                        NoteBlockUiItem.Checklist(
-                            id = block.id,
-                            title = lines.firstOrNull().orEmpty(),
-                            items = lines.drop(1).filter(String::isNotBlank),
-                            time = time,
-                            dayHeader = dayHeader,
+    override suspend fun handleCommand(command: NoteDetailCommand.Init): Flow<NoteDetailEvent> =
+        flow {
+            val note = repository.getById(command.noteId) ?: return@flow
+            emit(NoteDetailEvent.NoteLoaded(note.title, note.color.toCardColor()))
+            repository.observeBlocksForNote(command.noteId).collect { rawBlocks ->
+                val zone = TimeZone.currentSystemDefault()
+                emit(NoteDetailEvent.BlocksLoaded(rawBlocks.mapIndexed { index, block ->
+                    val date =
+                        Instant.fromEpochMilliseconds(block.createdAt).toLocalDateTime(zone).date
+                    val prevDate = if (index > 0) {
+                        Instant.fromEpochMilliseconds(rawBlocks[index - 1].createdAt)
+                            .toLocalDateTime(zone).date
+                    } else null
+                    val dayHeader =
+                        if (prevDate == null || prevDate != date) date.toDayHeader(zone) else null
+                    val time = block.createdAt.toTime(zone)
+                    val text = block.text.decryptIfEncoded(command.unlockedPin)
+                    when (block.type) {
+                        NoteBlockType.TEXT -> NoteBlockUiItem.Text(block.id, text, time, dayHeader)
+                        NoteBlockType.PHOTO -> NoteBlockUiItem.Photo(
+                            block.id,
+                            text,
+                            time,
+                            dayHeader
                         )
+
+                        NoteBlockType.CHECKLIST -> {
+                            val lines = text.lines()
+                            NoteBlockUiItem.Checklist(
+                                id = block.id,
+                                title = lines.firstOrNull().orEmpty(),
+                                items = lines.drop(1).filter(String::isNotBlank),
+                                time = time,
+                                dayHeader = dayHeader,
+                            )
+                        }
                     }
-                }
-            }))
+                }))
+            }
         }
-    }
 }
 
 class NoteDetailInsertBlockHandler(
@@ -66,11 +76,13 @@ class NoteDetailInsertBlockHandler(
     NoteDetailCommand.InsertBlock::class,
     cancelPreviousOnNewCommand = false,
 ) {
-    override suspend fun handleCommand(command: NoteDetailCommand.InsertBlock): Flow<NoteDetailEvent> = flow {
-        val text = command.pin?.let { NoteEncryptor.encrypt(command.text, it).encodeToString() } ?: command.text
-        repository.insertBlock(command.noteId, text = text)
-        emit(NoteDetailEvent.BlockSent)
-    }
+    override suspend fun handleCommand(command: NoteDetailCommand.InsertBlock): Flow<NoteDetailEvent> =
+        flow {
+            val text = command.pin?.let { NoteEncryptor.encrypt(command.text, it).encodeToString() }
+                ?: command.text
+            repository.insertBlock(command.noteId, text = text)
+            emit(NoteDetailEvent.BlockSent)
+        }
 }
 
 class NoteDetailInsertPhotoBlockHandler(
@@ -79,11 +91,13 @@ class NoteDetailInsertPhotoBlockHandler(
     NoteDetailCommand.InsertPhotoBlock::class,
     cancelPreviousOnNewCommand = false,
 ) {
-    override suspend fun handleCommand(command: NoteDetailCommand.InsertPhotoBlock): Flow<NoteDetailEvent> = flow {
-        val uri = command.pin?.let { NoteEncryptor.encrypt(command.uri, it).encodeToString() } ?: command.uri
-        repository.insertBlock(command.noteId, NoteBlockType.PHOTO, uri)
-        emit(NoteDetailEvent.BlockSent)
-    }
+    override suspend fun handleCommand(command: NoteDetailCommand.InsertPhotoBlock): Flow<NoteDetailEvent> =
+        flow {
+            val uri = command.pin?.let { NoteEncryptor.encrypt(command.uri, it).encodeToString() }
+                ?: command.uri
+            repository.insertBlock(command.noteId, NoteBlockType.PHOTO, uri)
+            emit(NoteDetailEvent.BlockSent)
+        }
 }
 
 class NoteDetailInsertChecklistBlockHandler(
@@ -92,12 +106,13 @@ class NoteDetailInsertChecklistBlockHandler(
     NoteDetailCommand.InsertChecklistBlock::class,
     cancelPreviousOnNewCommand = false,
 ) {
-    override suspend fun handleCommand(command: NoteDetailCommand.InsertChecklistBlock): Flow<NoteDetailEvent> = flow {
-        val raw = "${command.title}\n${command.items.joinToString("\n")}"
-        val text = command.pin?.let { NoteEncryptor.encrypt(raw, it).encodeToString() } ?: raw
-        repository.insertBlock(command.noteId, NoteBlockType.CHECKLIST, text)
-        emit(NoteDetailEvent.BlockSent)
-    }
+    override suspend fun handleCommand(command: NoteDetailCommand.InsertChecklistBlock): Flow<NoteDetailEvent> =
+        flow {
+            val raw = "${command.title}\n${command.items.joinToString("\n")}"
+            val text = command.pin?.let { NoteEncryptor.encrypt(raw, it).encodeToString() } ?: raw
+            repository.insertBlock(command.noteId, NoteBlockType.CHECKLIST, text)
+            emit(NoteDetailEvent.BlockSent)
+        }
 }
 
 class NoteDetailDeleteBlockHandler(
@@ -106,10 +121,74 @@ class NoteDetailDeleteBlockHandler(
     NoteDetailCommand.DeleteBlock::class,
     cancelPreviousOnNewCommand = false,
 ) {
-    override suspend fun handleCommand(command: NoteDetailCommand.DeleteBlock): Flow<NoteDetailEvent> = flow {
-        repository.deleteBlock(command.blockId)
-        emit(NoteDetailEvent.BlockDeleted)
-    }
+    override suspend fun handleCommand(command: NoteDetailCommand.DeleteBlock): Flow<NoteDetailEvent> =
+        flow {
+            repository.deleteBlock(command.blockId)
+            emit(NoteDetailEvent.BlockDeleted)
+        }
+}
+
+class NoteDetailUpdateBlockHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.UpdateBlock, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.UpdateBlock::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.UpdateBlock): Flow<NoteDetailEvent> =
+        flow {
+            val text = command.pin?.let { NoteEncryptor.encrypt(command.text, it).encodeToString() }
+                ?: command.text
+            repository.updateBlockText(command.blockId, text)
+            emit(NoteDetailEvent.BlockUpdated)
+        }
+}
+
+class NoteDetailRenameNoteHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.RenameNote, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.RenameNote::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.RenameNote): Flow<NoteDetailEvent> =
+        flow {
+            val note = repository.getById(command.noteId) ?: return@flow
+            repository.update(note.copy(title = command.newTitle))
+            emit(NoteDetailEvent.NoteRenamed)
+        }
+}
+
+class NoteDetailChangeColorHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.ChangeNoteColor, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.ChangeNoteColor::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.ChangeNoteColor): Flow<NoteDetailEvent> =
+        flow {
+            val note = repository.getById(command.noteId) ?: return@flow
+            repository.update(note.copy(color = command.color.toNoteColor()))
+            emit(NoteDetailEvent.NoteColorChanged)
+        }
+}
+
+class NoteDetailDeleteNoteHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.DeleteNote, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.DeleteNote::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.DeleteNote): Flow<NoteDetailEvent> =
+        flow {
+            repository.delete(command.noteId)
+            emit(NoteDetailEvent.NoteDeleted)
+        }
+}
+
+private fun NoteCardColor.toNoteColor() = when (this) {
+    NoteCardColor.Purple -> NoteColor.Purple
+    NoteCardColor.Pink -> NoteColor.Pink
+    NoteCardColor.Green -> NoteColor.Green
+    NoteCardColor.Orange -> NoteColor.Orange
 }
 
 private fun String.decryptIfEncoded(pin: String?): String {

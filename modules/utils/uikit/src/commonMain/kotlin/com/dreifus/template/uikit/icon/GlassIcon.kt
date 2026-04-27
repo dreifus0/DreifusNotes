@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dreifus.template.uikit.glass.glassBorder
@@ -21,16 +22,19 @@ fun GlassIcon(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
+    iconSize: Dp = 24.dp,
+    backgroundColor: Color = AppTheme.colors.bgCardPrimary,
+    iconTint: Color = AppTheme.colors.contentPrimary,
 ) {
     Box(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(color = AppTheme.colors.bgCardPrimary, shape = CircleShape)
+            .background(color = backgroundColor, shape = CircleShape)
             .glassBorder(shape = CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        icon(tint = AppTheme.colors.contentPrimary)
+        icon(modifier = Modifier.size(iconSize), tint = iconTint)
     }
 }

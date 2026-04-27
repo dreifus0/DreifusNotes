@@ -24,6 +24,15 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
             state = state,
             command = NoteDetailCommand.DeleteBlock(event.blockId),
         )
+        is NoteDetailEvent.Ui.CopyBlockClick -> {
+            val text = state.blocks.find { it.id == event.blockId }?.copyText()
+            if (text != null) Next(state = state, effect = NoteDetailEffect.CopyToClipboard(text))
+            else Next(state = state)
+        }
+        is NoteDetailEvent.Ui.EditBlockConfirmed -> Next(
+            state = state,
+            command = NoteDetailCommand.UpdateBlock(event.blockId, event.newText, state.unlockedPin),
+        )
         NoteDetailEvent.Ui.LockClick -> Next(
             state = state,
             effect = NoteDetailEffect.NavigateToPinSetup(state.noteId),
@@ -52,5 +61,52 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
         )
         NoteDetailEvent.BlockSent -> Next(state = state)
         NoteDetailEvent.BlockDeleted -> Next(state = state)
+        NoteDetailEvent.BlockUpdated -> Next(state = state)
+        NoteDetailEvent.Ui.ShareClick -> Next(
+            state = state,
+            effect = NoteDetailEffect.ShareNote(buildShareText(state)),
+        )
+        is NoteDetailEvent.Ui.RenameConfirmed -> Next(
+            state = state.copy(title = event.newTitle),
+            command = NoteDetailCommand.RenameNote(state.noteId, event.newTitle),
+        )
+        is NoteDetailEvent.Ui.ColorChangeConfirmed -> Next(
+            state = state.copy(color = event.color),
+            command = NoteDetailCommand.ChangeNoteColor(state.noteId, event.color),
+        )
+        NoteDetailEvent.Ui.DeleteNoteConfirmed -> Next(
+            state = state,
+            command = NoteDetailCommand.DeleteNote(state.noteId),
+        )
+        NoteDetailEvent.NoteRenamed -> Next(state = state)
+        NoteDetailEvent.NoteColorChanged -> Next(state = state)
+        NoteDetailEvent.NoteDeleted -> Next(state = state, effect = NoteDetailEffect.NavigateBack)
     }
+}
+
+private fun buildShareText(state: NoteDetailState): String = buildString {
+    if (state.title.isNotBlank()) {
+        appendLine(state.title)
+        appendLine()
+    }
+    state.blocks.forEach { block ->
+        when (block) {
+            is NoteBlockUiItem.Text -> appendLine(block.text)
+            is NoteBlockUiItem.Checklist -> {
+                if (block.title.isNotBlank()) appendLine(block.title)
+                block.items.forEach { appendLine("• $it") }
+            }
+            is NoteBlockUiItem.Photo -> Unit
+        }
+        appendLine()
+    }
+}.trimEnd()
+
+private fun NoteBlockUiItem.copyText(): String? = when (this) {
+    is NoteBlockUiItem.Text -> text
+    is NoteBlockUiItem.Checklist -> buildString {
+        if (title.isNotBlank()) appendLine(title)
+        items.forEach(::appendLine)
+    }.trimEnd()
+    is NoteBlockUiItem.Photo -> null
 }

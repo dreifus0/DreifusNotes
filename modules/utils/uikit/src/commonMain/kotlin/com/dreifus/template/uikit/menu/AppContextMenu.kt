@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -18,9 +19,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
+import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.Edit24
 import com.dreifus.template.uikit.icon.Lock24
 import com.dreifus.template.uikit.icon.Palette24
@@ -40,21 +49,22 @@ data class ContextMenuItem(
 private val menuShape = RoundedCornerShape(14.dp)
 
 @Composable
-fun AppContextMenu(
+private fun AppContextMenu(
     items: List<ContextMenuItem>,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .shadow(elevation = 12.dp, shape = menuShape)
+            .widthIn(min = 200.dp, max = 280.dp)
             .clip(menuShape)
-            .background(AppTheme.colors.backgroundSecondary),
+            .background(AppTheme.colors.bgCardPrimary)
+            .glassBorder(shape = menuShape),
     ) {
         items.forEachIndexed { index, item ->
             ContextMenuRow(item = item)
             if (index < items.lastIndex) {
                 HorizontalDivider(
-                    color = AppTheme.colors.contentDividers,
+                    color = AppTheme.colors.contentBorder.copy(alpha = 0.6f),
                     thickness = 0.5.dp,
                 )
             }
@@ -87,6 +97,44 @@ private fun ContextMenuRow(item: ContextMenuItem) {
             modifier = Modifier.size(18.dp),
             tint = labelColor,
         )
+    }
+}
+
+@Composable
+fun ContextMenuPopup(
+    anchorPosition: IntOffset,
+    anchorSize: IntSize,
+    alignEnd: Boolean,
+    onDismissRequest: () -> Unit,
+    items: List<ContextMenuItem>,
+) {
+    val density = LocalDensity.current
+    val gapPx = with(density) { 12.dp.roundToPx() }
+    val positionProvider = remember(anchorPosition, anchorSize, alignEnd, gapPx) {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect,
+                windowSize: IntSize,
+                layoutDirection: LayoutDirection,
+                popupContentSize: IntSize,
+            ): IntOffset {
+                val x = if (alignEnd) {
+                    (anchorPosition.x + anchorSize.width - popupContentSize.width).coerceAtLeast(0)
+                } else {
+                    anchorPosition.x.coerceAtMost(windowSize.width - popupContentSize.width)
+                }
+                val yAbove = anchorPosition.y - popupContentSize.height - gapPx
+                val y = if (yAbove >= 0) yAbove else anchorPosition.y + anchorSize.height + gapPx
+                return IntOffset(x, y)
+            }
+        }
+    }
+    Popup(
+        popupPositionProvider = positionProvider,
+        onDismissRequest = onDismissRequest,
+        properties = PopupProperties(focusable = true),
+    ) {
+        AppContextMenu(items = items)
     }
 }
 

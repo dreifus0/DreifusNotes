@@ -1,0 +1,12 @@
+<resources>
+    <!-- Pin setup -->
+    <string name="pin_setup_title_enter">Create passcode</string>
+    <string name="pin_setup_title_confirm">Confirm passcode</string>
+    <string name="pin_setup_subtitle_enter">Set a 4-digit passcode\nto protect this note.</string>
+    <string name="pin_setup_subtitle_confirm">Enter your passcode\none more time.</string>
+    <string name="pin_setup_error">Passcodes didn\'t match.\nPlease try again.</string>
+
+    <!-- Pin lock -->
+    <string name="pin_lock_title">Enter passcode</string>
+    <string name="pin_lock_subtitle">This note is locked. Enter your 4-digit\npasscode to view it.</string>
+</resources>

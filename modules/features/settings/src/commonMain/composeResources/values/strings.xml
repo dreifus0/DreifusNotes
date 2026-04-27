@@ -1,0 +1,22 @@
+<resources>
+    <!-- Screen title -->
+    <string name="settings_title">Settings</string>
+
+    <!-- Section labels -->
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_data">Data</string>
+    <string name="settings_section_about">About</string>
+
+    <!-- Rows -->
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_appearance_value">System</string>
+    <string name="settings_reset_data">Reset data</string>
+    <string name="settings_reset_data_subtitle">Erase all notes</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_version_value">1.0 (build 1)</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+
+    <!-- Biometric prompt -->
+    <string name="settings_biometric_title">Confirm reset</string>
+    <string name="settings_biometric_subtitle">Authenticate to delete all notes</string>
+</resources>

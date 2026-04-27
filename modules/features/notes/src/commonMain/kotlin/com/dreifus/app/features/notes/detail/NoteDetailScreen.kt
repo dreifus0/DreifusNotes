@@ -7,8 +7,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,10 +28,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import kotlin.math.roundToInt
+import com.dreifus.template.uikit.icon.Checklist24
+import com.dreifus.template.uikit.icon.Download24
+import com.dreifus.template.uikit.icon.Edit24
+import com.dreifus.template.uikit.icon.Palette24
+import com.dreifus.template.uikit.icon.Trash24
+import com.dreifus.template.uikit.menu.ContextMenuPopup
+import com.dreifus.template.uikit.menu.ContextMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,9 +52,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,6 +80,28 @@ import com.dreifus.template.uikit.style.NoteCardColor
 import com.dreifus.template.uikit.textField.AppTextField
 import com.dreifus.template.uikit.toolbar.AppToolbar
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import dreifusnotes.modules.features.notes.generated.resources.Res
+import dreifusnotes.modules.features.notes.generated.resources.note_block_copy
+import dreifusnotes.modules.features.notes.generated.resources.note_block_edit
+import dreifusnotes.modules.features.notes.generated.resources.note_block_edit_cancel
+import dreifusnotes.modules.features.notes.generated.resources.note_block_edit_save
+import dreifusnotes.modules.features.notes.generated.resources.note_block_edit_title
+import dreifusnotes.modules.features.notes.generated.resources.note_detail_add_checklist
+import dreifusnotes.modules.features.notes.generated.resources.note_detail_add_photo
+import dreifusnotes.modules.features.notes.generated.resources.note_detail_delete
+import dreifusnotes.modules.features.notes.generated.resources.note_detail_input_placeholder
+import dreifusnotes.modules.features.notes.generated.resources.note_detail_photo_label
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_change_color
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_change_color_title
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_delete
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_delete_confirm
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_delete_message
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_delete_title
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_rename
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_rename_label
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_rename_title
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_share
+import org.jetbrains.compose.resources.stringResource
 
 class NoteDetailScreen(
     private val noteId: Long,
@@ -83,6 +118,8 @@ class NoteDetailScreen(
         val imagePickerLauncher = rememberImagePicker { uri ->
             if (uri != null) vm.dispatch(NoteDetailEvent.Ui.PhotoSelected(uri))
         }
+        val clipboardManager = LocalClipboardManager.current
+        val shareLauncher = rememberShareLauncher()
 
         LaunchedEffect(Unit) {
             vm.dispatch(NoteDetailEvent.Ui.Init(noteId, unlockedPin))
@@ -100,6 +137,8 @@ class NoteDetailScreen(
                             vm.dispatch(NoteDetailEvent.Ui.ChecklistConfirmed(title, items))
                         }
                     )
+                    is NoteDetailEffect.CopyToClipboard -> clipboardManager.setText(AnnotatedString(effect.text))
+                    is NoteDetailEffect.ShareNote -> shareLauncher(effect.text)
                 }
             }
         }
@@ -113,6 +152,14 @@ private fun NoteDetailContent(
     state: NoteDetailState,
     onEvent: (NoteDetailEvent.Ui) -> Unit,
 ) {
+    var showMoreMenu by remember { mutableStateOf(false) }
+    var moreAnchorPosition by remember { mutableStateOf(IntOffset.Zero) }
+    var moreAnchorSize by remember { mutableStateOf(IntSize.Zero) }
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var renameValue by remember { mutableStateOf("") }
+    var showColorDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxSize()) {
         AppToolbar(
             title = state.title,
@@ -121,17 +168,28 @@ private fun NoteDetailContent(
                 GlassIcon(
                     icon = AppIcons.ArrowLeft24,
                     onClick = { onEvent(NoteDetailEvent.Ui.BackClick) },
+                    size = 36.dp,
+                    iconSize = 16.dp,
                 )
             },
             endBlock = {
                 GlassIcon(
                     icon = AppIcons.Lock24,
                     onClick = { onEvent(NoteDetailEvent.Ui.LockClick) },
+                    size = 36.dp,
+                    iconSize = 16.dp,
                 )
                 Spacer(Modifier.width(6.dp))
                 GlassIcon(
                     icon = AppIcons.MoreHoriz24,
-                    onClick = { },
+                    onClick = { showMoreMenu = true },
+                    modifier = Modifier.onGloballyPositioned { coords ->
+                        val pos = coords.positionInWindow()
+                        moreAnchorPosition = IntOffset(pos.x.roundToInt(), pos.y.roundToInt())
+                        moreAnchorSize = coords.size
+                    },
+                    size = 36.dp,
+                    iconSize = 16.dp,
                 )
             },
         )
@@ -163,10 +221,7 @@ private fun NoteDetailContent(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(state.blocks, key = { it.id }) { block ->
-                    BlockItemWithHeader(
-                        block = block,
-                        onDelete = { onEvent(NoteDetailEvent.Ui.DeleteBlockClick(block.id)) },
-                    )
+                    BlockItemWithHeader(block = block, onEvent = onEvent)
                 }
             }
         }
@@ -179,12 +234,183 @@ private fun NoteDetailContent(
             onChecklistClick = { onEvent(NoteDetailEvent.Ui.ChecklistClick) },
         )
     }
+
+    if (showMoreMenu) {
+        ContextMenuPopup(
+            anchorPosition = moreAnchorPosition,
+            anchorSize = moreAnchorSize,
+            alignEnd = true,
+            onDismissRequest = { showMoreMenu = false },
+            items = listOf(
+                ContextMenuItem(
+                    label = stringResource(Res.string.note_menu_rename),
+                    icon = AppIcons.Edit24,
+                    onClick = {
+                        showMoreMenu = false
+                        renameValue = state.title
+                        showRenameDialog = true
+                    },
+                ),
+                ContextMenuItem(
+                    label = stringResource(Res.string.note_menu_change_color),
+                    icon = AppIcons.Palette24,
+                    onClick = { showMoreMenu = false; showColorDialog = true },
+                ),
+                ContextMenuItem(
+                    label = stringResource(Res.string.note_menu_share),
+                    icon = AppIcons.Send24,
+                    onClick = { showMoreMenu = false; onEvent(NoteDetailEvent.Ui.ShareClick) },
+                ),
+                ContextMenuItem(
+                    label = stringResource(Res.string.note_menu_delete),
+                    icon = AppIcons.Trash24,
+                    isDestructive = true,
+                    onClick = { showMoreMenu = false; showDeleteDialog = true },
+                ),
+            ),
+        )
+    }
+
+    if (showRenameDialog) {
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            title = {
+                Text(
+                    text = stringResource(Res.string.note_menu_rename_title),
+                    style = AppTheme.typography.headlineLarge,
+                    color = AppTheme.colors.contentPrimary,
+                )
+            },
+            text = {
+                AppTextField(
+                    value = renameValue,
+                    onValueChange = { renameValue = it },
+                    labelText = stringResource(Res.string.note_menu_rename_label),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showRenameDialog = false
+                    if (renameValue.isNotBlank()) onEvent(NoteDetailEvent.Ui.RenameConfirmed(renameValue))
+                }) {
+                    Text(
+                        text = stringResource(Res.string.note_block_edit_save),
+                        color = AppTheme.colors.accentPrimary,
+                        style = AppTheme.typography.headlineMedium,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) {
+                    Text(
+                        text = stringResource(Res.string.note_block_edit_cancel),
+                        color = AppTheme.colors.contentSecondary,
+                        style = AppTheme.typography.headlineMedium,
+                    )
+                }
+            },
+            containerColor = AppTheme.colors.backgroundBase,
+            shape = AppTheme.shapes.dialog,
+        )
+    }
+
+    if (showColorDialog) {
+        AlertDialog(
+            onDismissRequest = { showColorDialog = false },
+            title = {
+                Text(
+                    text = stringResource(Res.string.note_menu_change_color_title),
+                    style = AppTheme.typography.headlineLarge,
+                    color = AppTheme.colors.contentPrimary,
+                )
+            },
+            text = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    NoteCardColor.entries.forEach { color ->
+                        val colorPalette = color.palette()
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(colorPalette.background, CircleShape)
+                                .then(
+                                    if (color == state.color) {
+                                        Modifier.border(2.dp, AppTheme.colors.contentPrimary, CircleShape)
+                                    } else Modifier
+                                )
+                                .clickable {
+                                    showColorDialog = false
+                                    onEvent(NoteDetailEvent.Ui.ColorChangeConfirmed(color))
+                                },
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showColorDialog = false }) {
+                    Text(
+                        text = stringResource(Res.string.note_block_edit_cancel),
+                        color = AppTheme.colors.contentSecondary,
+                        style = AppTheme.typography.headlineMedium,
+                    )
+                }
+            },
+            containerColor = AppTheme.colors.backgroundBase,
+            shape = AppTheme.shapes.dialog,
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text(
+                    text = stringResource(Res.string.note_menu_delete_title),
+                    style = AppTheme.typography.headlineLarge,
+                    color = AppTheme.colors.contentPrimary,
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(Res.string.note_menu_delete_message),
+                    style = AppTheme.typography.bodyMedium,
+                    color = AppTheme.colors.contentSecondary,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    onEvent(NoteDetailEvent.Ui.DeleteNoteConfirmed)
+                }) {
+                    Text(
+                        text = stringResource(Res.string.note_menu_delete_confirm),
+                        color = AppTheme.colors.accentError,
+                        style = AppTheme.typography.headlineMedium,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(
+                        text = stringResource(Res.string.note_block_edit_cancel),
+                        color = AppTheme.colors.contentSecondary,
+                        style = AppTheme.typography.headlineMedium,
+                    )
+                }
+            },
+            containerColor = AppTheme.colors.backgroundBase,
+            shape = AppTheme.shapes.dialog,
+        )
+    }
 }
 
 @Composable
 private fun BlockItemWithHeader(
     block: NoteBlockUiItem,
-    onDelete: () -> Unit,
+    onEvent: (NoteDetailEvent.Ui) -> Unit,
 ) {
     Column {
         if (block.dayHeader != null) {
@@ -198,7 +424,18 @@ private fun BlockItemWithHeader(
                 textAlign = TextAlign.Center,
             )
         }
-        BlockShell(time = block.time, onDelete = onDelete) {
+        BlockShell(
+            time = block.time,
+            onDelete = { onEvent(NoteDetailEvent.Ui.DeleteBlockClick(block.id)) },
+            onCopy = when (block) {
+                is NoteBlockUiItem.Photo -> null
+                else -> { { onEvent(NoteDetailEvent.Ui.CopyBlockClick(block.id)) } }
+            },
+            initialEditText = (block as? NoteBlockUiItem.Text)?.text,
+            onEditConfirm = if (block is NoteBlockUiItem.Text) {
+                { newText -> onEvent(NoteDetailEvent.Ui.EditBlockConfirmed(block.id, newText)) }
+            } else null,
+        ) {
             when (block) {
                 is NoteBlockUiItem.Text -> TextBlockContent(block)
                 is NoteBlockUiItem.Photo -> PhotoBlockContent()
@@ -216,46 +453,110 @@ private val blockShape = RoundedCornerShape(
 private fun BlockShell(
     time: String,
     onDelete: () -> Unit,
+    onCopy: (() -> Unit)? = null,
+    initialEditText: String? = null,
+    onEditConfirm: ((String) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Box {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.82f)
-                    .combinedClickable(
-                        onClick = {},
-                        onLongClick = { showMenu = true },
-                    ),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(AppTheme.colors.bgCardPrimary, blockShape)
-                        .glassBorder(shape = blockShape)
-                        .padding(16.dp),
-                ) {
-                    content()
-                }
-                Spacer(Modifier.height(3.dp))
-                Text(
-                    text = time,
-                    style = AppTheme.typography.bodySmall,
-                    color = AppTheme.colors.contentTertiary,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-            }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editValue by remember { mutableStateOf("") }
+    var anchorPosition by remember { mutableStateOf(IntOffset.Zero) }
+    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
 
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.82f)
+                .onGloballyPositioned { coords ->
+                    val pos = coords.positionInWindow()
+                    anchorPosition = IntOffset(pos.x.roundToInt(), pos.y.roundToInt())
+                    anchorSize = coords.size
+                }
+                .clickable { showMenu = true },
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(AppTheme.colors.bgCardPrimary, blockShape)
+                    .glassBorder(shape = blockShape)
+                    .padding(16.dp),
             ) {
-                DropdownMenuItem(
-                    text = { Text("Delete") },
-                    onClick = { showMenu = false; onDelete() },
-                )
+                content()
             }
+            Spacer(Modifier.height(3.dp))
+            Text(
+                text = time,
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colors.contentTertiary,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
         }
+    }
+
+    if (showMenu) {
+        ContextMenuPopup(
+            anchorPosition = anchorPosition,
+            anchorSize = anchorSize,
+            alignEnd = true,
+            onDismissRequest = { showMenu = false },
+            items = buildList {
+                if (onCopy != null) add(ContextMenuItem(
+                    label = stringResource(Res.string.note_block_copy),
+                    onClick = { showMenu = false; onCopy() },
+                ))
+                if (initialEditText != null) add(ContextMenuItem(
+                    label = stringResource(Res.string.note_block_edit),
+                    icon = AppIcons.Edit24,
+                    onClick = { showMenu = false; editValue = initialEditText; showEditDialog = true },
+                ))
+                add(ContextMenuItem(
+                    label = stringResource(Res.string.note_detail_delete),
+                    icon = AppIcons.Trash24,
+                    isDestructive = true,
+                    onClick = { showMenu = false; onDelete() },
+                ))
+            },
+        )
+    }
+
+    if (showEditDialog && onEditConfirm != null) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = {
+                Text(
+                    text = stringResource(Res.string.note_block_edit_title),
+                    style = AppTheme.typography.headlineLarge,
+                    color = AppTheme.colors.contentPrimary,
+                )
+            },
+            text = {
+                AppTextField(
+                    value = editValue,
+                    onValueChange = { editValue = it },
+                    labelText = "",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showEditDialog = false; onEditConfirm(editValue) }) {
+                    Text(
+                        text = stringResource(Res.string.note_block_edit_save),
+                        color = AppTheme.colors.accentPrimary,
+                        style = AppTheme.typography.headlineMedium,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text(
+                        text = stringResource(Res.string.note_block_edit_cancel),
+                        color = AppTheme.colors.contentSecondary,
+                        style = AppTheme.typography.headlineMedium,
+                    )
+                }
+            },
+            containerColor = AppTheme.colors.backgroundBase,
+            shape = AppTheme.shapes.dialog,
+        )
     }
 }
 
@@ -281,7 +582,7 @@ private fun PhotoBlockContent() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Photo",
+            text = stringResource(Res.string.note_detail_photo_label),
             style = AppTheme.typography.bodyMedium,
             color = AppTheme.colors.contentTertiary,
         )
@@ -323,9 +624,10 @@ private fun BlockInputBar(
     onChecklistClick: () -> Unit,
 ) {
     var showPlusMenu by remember { mutableStateOf(false) }
-    val dividerColor = AppTheme.colors.contentDividers
+    var plusPosition by remember { mutableStateOf(IntOffset.Zero) }
+    var plusSize by remember { mutableStateOf(IntSize.Zero) }
     Column(modifier = Modifier.fillMaxWidth()) {
-        HorizontalDivider(color = dividerColor, thickness = 0.5.dp)
+        HorizontalDivider(color = AppTheme.colors.contentTertiary.copy(alpha = 0.4f), thickness = 0.5.dp)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -335,44 +637,51 @@ private fun BlockInputBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box {
-                GlassIcon(
-                    icon = AppIcons.Plus24,
-                    onClick = { showPlusMenu = true },
-                )
-                DropdownMenu(
-                    expanded = showPlusMenu,
-                    onDismissRequest = { showPlusMenu = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Photo") },
-                        onClick = { showPlusMenu = false; onPhotoClick() },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Checklist") },
-                        onClick = { showPlusMenu = false; onChecklistClick() },
-                    )
-                }
-            }
+            GlassIcon(
+                icon = AppIcons.Plus24,
+                onClick = { showPlusMenu = true },
+                modifier = Modifier.onGloballyPositioned { coords ->
+                    val pos = coords.positionInWindow()
+                    plusPosition = IntOffset(pos.x.roundToInt(), pos.y.roundToInt())
+                    plusSize = coords.size
+                },
+            )
             AppTextField(
                 value = text,
                 onValueChange = onTextChange,
                 modifier = Modifier.weight(1f),
-                labelText = "Add to note…",
+                labelText = stringResource(Res.string.note_detail_input_placeholder),
                 imeAction = ImeAction.Send,
                 keyboardActions = KeyboardActions(onSend = { onSend() }),
             )
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(AppTheme.colors.accentPrimary, CircleShape)
-                    .clickable(onClick = onSend),
-                contentAlignment = Alignment.Center,
-            ) {
-                AppIcons.Send24(tint = AppTheme.colors.accentOnPrimary)
-            }
+            GlassIcon(
+                icon = AppIcons.Send24,
+                onClick = onSend,
+                iconSize = 18.dp,
+                backgroundColor = AppTheme.colors.accentPrimary,
+                iconTint = AppTheme.colors.accentOnPrimary,
+            )
         }
+    }
+    if (showPlusMenu) {
+        ContextMenuPopup(
+            anchorPosition = plusPosition,
+            anchorSize = plusSize,
+            alignEnd = false,
+            onDismissRequest = { showPlusMenu = false },
+            items = listOf(
+                ContextMenuItem(
+                    label = stringResource(Res.string.note_detail_add_photo),
+                    icon = AppIcons.Download24,
+                    onClick = { showPlusMenu = false; onPhotoClick() },
+                ),
+                ContextMenuItem(
+                    label = stringResource(Res.string.note_detail_add_checklist),
+                    icon = AppIcons.Checklist24,
+                    onClick = { showPlusMenu = false; onChecklistClick() },
+                ),
+            ),
+        )
     }
 }
 
@@ -393,7 +702,7 @@ private fun BlocksShimmer(modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(widthFraction)
-                    .height(56.dp)
+                    .height(36.dp)
                     .background(brush, blockShape),
             )
         }

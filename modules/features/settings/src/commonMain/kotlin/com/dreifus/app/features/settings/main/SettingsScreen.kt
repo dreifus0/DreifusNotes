@@ -45,6 +45,21 @@ import com.dreifus.template.uikit.row.AppSectionLabel
 import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import dreifusnotes.modules.features.settings.generated.resources.Res
+import dreifusnotes.modules.features.settings.generated.resources.settings_appearance
+import dreifusnotes.modules.features.settings.generated.resources.settings_appearance_value
+import dreifusnotes.modules.features.settings.generated.resources.settings_biometric_subtitle
+import dreifusnotes.modules.features.settings.generated.resources.settings_biometric_title
+import dreifusnotes.modules.features.settings.generated.resources.settings_privacy_policy
+import dreifusnotes.modules.features.settings.generated.resources.settings_reset_data
+import dreifusnotes.modules.features.settings.generated.resources.settings_reset_data_subtitle
+import dreifusnotes.modules.features.settings.generated.resources.settings_section_about
+import dreifusnotes.modules.features.settings.generated.resources.settings_section_data
+import dreifusnotes.modules.features.settings.generated.resources.settings_section_general
+import dreifusnotes.modules.features.settings.generated.resources.settings_title
+import dreifusnotes.modules.features.settings.generated.resources.settings_version
+import dreifusnotes.modules.features.settings.generated.resources.settings_version_value
+import org.jetbrains.compose.resources.stringResource
 
 private val IconShape = RoundedCornerShape(10.dp)
 
@@ -67,8 +82,8 @@ class SettingsScreen : RootScreenWithTabs {
 
         BiometricAuthEffect(
             trigger = state.isBiometricPending,
-            title = "Confirm reset",
-            subtitle = "Authenticate to delete all notes",
+            title = stringResource(Res.string.settings_biometric_title),
+            subtitle = stringResource(Res.string.settings_biometric_subtitle),
             onAuthenticated = { vm.dispatch(SettingsEvent.Ui.BiometricSuccess) },
             onDismissed = { vm.dispatch(SettingsEvent.Ui.BiometricDismissed) },
         )
@@ -84,7 +99,7 @@ private fun SettingsContent(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
-            text = "Settings",
+            text = stringResource(Res.string.settings_title),
             style = AppTheme.typography.heading3,
             color = AppTheme.colors.contentPrimary,
             modifier = Modifier
@@ -100,11 +115,11 @@ private fun SettingsContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
-                AppSectionLabel("General")
+                AppSectionLabel(stringResource(Res.string.settings_section_general))
                 SettingsGroup {
                     SettingsRow(
-                        label = "Appearance",
-                        subtitle = "System",
+                        label = stringResource(Res.string.settings_appearance),
+                        subtitle = stringResource(Res.string.settings_appearance_value),
                         iconBackground = Color(0xFF9FE1CB),
                         icon = { AppIcons.Theme24(tint = Color(0xFF04342C)) },
                         showDivider = false,
@@ -115,11 +130,11 @@ private fun SettingsContent(
             }
 
             item {
-                AppSectionLabel("Data")
+                AppSectionLabel(stringResource(Res.string.settings_section_data))
                 SettingsGroup {
                     SettingsRow(
-                        label = "Reset data",
-                        subtitle = "Erase all notes",
+                        label = stringResource(Res.string.settings_reset_data),
+                        subtitle = stringResource(Res.string.settings_reset_data_subtitle),
                         iconBackground = Color(0xFFF4C0D1),
                         icon = { AppIcons.Trash24(tint = Color(0xFF4B1528)) },
                         showDivider = false,
@@ -130,11 +145,11 @@ private fun SettingsContent(
             }
 
             item {
-                AppSectionLabel("About")
+                AppSectionLabel(stringResource(Res.string.settings_section_about))
                 SettingsGroup {
                     SettingsRow(
-                        label = "Version",
-                        subtitle = "1.0 (build 1)",
+                        label = stringResource(Res.string.settings_version),
+                        subtitle = stringResource(Res.string.settings_version_value),
                         iconBackground = Color(0xFFD3D1C7),
                         icon = {
                             Text(
@@ -145,7 +160,7 @@ private fun SettingsContent(
                         },
                     )
                     SettingsRow(
-                        label = "Privacy Policy",
+                        label = stringResource(Res.string.settings_privacy_policy),
                         iconBackground = Color(0xFFF5C4B3),
                         icon = { AppIcons.Lock24(tint = Color(0xFF3A1608)) },
                         showDivider = false,

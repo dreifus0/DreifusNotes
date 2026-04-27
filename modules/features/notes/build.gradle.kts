@@ -12,6 +12,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.mvucore)
             implementation(libs.metrox.viewmodel.compose)
+            implementation(compose.components.resources)
             implementation(libs.kotlinx.datetime)
             implementation(projects.modules.utils.arch)
             implementation(projects.modules.utils.uikit)

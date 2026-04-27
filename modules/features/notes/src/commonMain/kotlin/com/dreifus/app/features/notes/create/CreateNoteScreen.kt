@@ -35,6 +35,13 @@ import com.dreifus.template.uikit.style.AppTheme
 import com.dreifus.template.uikit.style.NoteCardColor
 import com.dreifus.template.uikit.textField.AppTextField
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import dreifusnotes.modules.features.notes.generated.resources.Res
+import dreifusnotes.modules.features.notes.generated.resources.create_note_button
+import dreifusnotes.modules.features.notes.generated.resources.create_note_color_label
+import dreifusnotes.modules.features.notes.generated.resources.create_note_description_placeholder
+import dreifusnotes.modules.features.notes.generated.resources.create_note_title
+import dreifusnotes.modules.features.notes.generated.resources.create_note_title_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 class CreateNoteScreen : BottomSheetScreen {
 
@@ -87,7 +94,7 @@ private fun CreateNoteContent(
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Text(
-                text = "New note",
+                text = stringResource(Res.string.create_note_title),
                 style = AppTheme.typography.heading4,
                 color = AppTheme.colors.contentPrimary,
             )
@@ -95,18 +102,18 @@ private fun CreateNoteContent(
             AppTextField(
                 value = state.title,
                 onValueChange = { onEvent(CreateNoteEvent.Ui.TitleChanged(it)) },
-                labelText = "Title",
+                labelText = stringResource(Res.string.create_note_title_placeholder),
             )
 
             AppTextField(
                 value = state.description,
                 onValueChange = { onEvent(CreateNoteEvent.Ui.DescriptionChanged(it)) },
-                labelText = "Description",
+                labelText = stringResource(Res.string.create_note_description_placeholder),
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "Color",
+                    text = stringResource(Res.string.create_note_color_label),
                     style = AppTheme.typography.headlineSmall,
                     color = AppTheme.colors.contentSecondary,
                 )
@@ -126,7 +133,7 @@ private fun CreateNoteContent(
 
             AppButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Create",
+                text = stringResource(Res.string.create_note_button),
                 status = when {
                     state.isCreating -> ButtonStatus.Loading
                     state.title.isBlank() -> ButtonStatus.Disabled

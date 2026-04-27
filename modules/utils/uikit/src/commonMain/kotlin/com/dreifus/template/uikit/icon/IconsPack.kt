@@ -87,6 +87,10 @@ val AppIcons.Send24 by cachedIcon {
     rememberPainter(SendIcon).wrapWith(tint = AppTheme.colors.accentOnPrimary)
 }
 
+val AppIcons.Checklist24 by cachedIcon {
+    rememberPainter(ChecklistIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
+}
+
 //endregion
 
 @androidx.compose.runtime.Composable
@@ -347,6 +351,19 @@ private val SendIcon: ImageVector by lazy {
         stroke {
             moveTo(22f, 2f); lineTo(11f, 13f)
             moveTo(22f, 2f); lineTo(15f, 22f); lineTo(11f, 13f); lineTo(2f, 9f); lineTo(22f, 2f)
+        }
+    }
+}
+
+private val ChecklistIcon: ImageVector by lazy {
+    icon24(name = "Checklist") {
+        stroke {
+            moveTo(3f, 7f); lineTo(5.5f, 9.5f); lineTo(8.5f, 4.5f)
+            moveTo(11f, 7f); lineTo(21f, 7f)
+            moveTo(3f, 12f); lineTo(5.5f, 14.5f); lineTo(8.5f, 9.5f)
+            moveTo(11f, 12f); lineTo(21f, 12f)
+            moveTo(3f, 17f); lineTo(5.5f, 19.5f); lineTo(8.5f, 14.5f)
+            moveTo(11f, 17f); lineTo(21f, 17f)
         }
     }
 }

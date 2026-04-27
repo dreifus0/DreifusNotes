@@ -95,35 +95,39 @@ private fun PinKey(
 ) {
     val isGhost = key.isEmpty()
     val isBackspace = key == "⌫"
-    val shape = AppTheme.shapes.key
 
     Box(
-        modifier = Modifier
-            .aspectRatio(2f)
-            .clip(shape)
-            .then(
-                if (!isGhost) Modifier.background(AppTheme.colors.backgroundSecondary)
-                else Modifier
-            )
-            .then(
-                if (!isGhost) Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(),
-                    onClick = { if (isBackspace) onBackspace() else onKey(key) },
-                ) else Modifier
-            ),
+        modifier = Modifier.aspectRatio(2f),
         contentAlignment = Alignment.Center,
     ) {
-        if (isBackspace) {
-            AppIcons.Backspace24()
-        } else if (!isGhost) {
-            Text(
-                text = key,
-                style = AppTheme.typography.heading4,
-                color = AppTheme.colors.contentPrimary,
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-            )
+        if (!isGhost) {
+            Box(
+                modifier = Modifier
+                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                    .clip(CircleShape)
+                    .then(
+                        if (!isBackspace) Modifier.background(AppTheme.colors.bgCardPrimary)
+                        else Modifier
+                    )
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(),
+                        onClick = { if (isBackspace) onBackspace() else onKey(key) },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isBackspace) {
+                    AppIcons.Backspace24()
+                } else {
+                    Text(
+                        text = key,
+                        style = AppTheme.typography.heading4,
+                        color = AppTheme.colors.contentPrimary,
+                        textAlign = TextAlign.Center,
+                        fontSize = 20.sp,
+                    )
+                }
+            }
         }
     }
 }
