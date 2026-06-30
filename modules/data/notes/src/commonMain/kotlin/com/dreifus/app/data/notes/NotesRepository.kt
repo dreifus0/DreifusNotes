@@ -125,6 +125,68 @@ class NotesRepository(
         }
     }
 
+    /**
+     * Updates the note description. For a protected note the [pin] is required: the plaintext is
+     * encrypted into [NoteEntity.encrypted_body] and the cleartext [NoteEntity.description] is left empty.
+     */
+    suspend fun updateDescription(id: Long, description: String, pin: String?) {
+        val note = getById(id) ?: return
+        if (pin != null && note.isProtected) {
+            val now = Clock.System.now().toEpochMilliseconds()
+            val enc = description.takeIf { it.isNotEmpty() }?.let { NoteEncryptor.encrypt(it, pin) }
+            noteQueries.updateEncryptedBody(
+                description = "",
+                encrypted_body = enc?.ciphertext,
+                iv = enc?.iv,
+                salt = enc?.salt,
+                updated_at = now,
+                id = id,
+            )
+        } else {
+            update(note.copy(description = description))
+        }
+    }
+
+    /**
+     * Permanently removes PIN protection: decrypts the description and all encrypted blocks back to
+     * plaintext, clears the encrypted body and pin, and marks the note as unprotected.
+     */
+    suspend fun removeProtection(id: Long, pin: String) {
+        val note = getById(id) ?: return
+        val blocks = getBlocksForNote(id)
+        val now = Clock.System.now().toEpochMilliseconds()
+
+        val decryptedDescription = note.encryptedBody?.let { body ->
+            if (note.iv != null && note.salt != null) {
+                NoteEncryptor.decrypt(body, note.iv, note.salt, pin)
+            } else null
+        } ?: note.description
+
+        val decryptedBlocks = blocks.mapNotNull { block ->
+            val enc = block.text.decodeEncryptedData() ?: return@mapNotNull null
+            val plain = NoteEncryptor.decrypt(enc.ciphertext, enc.iv, enc.salt, pin) ?: return@mapNotNull null
+            block.id to plain
+        }
+
+        db.transaction {
+            noteQueries.update(
+                title = note.title,
+                description = decryptedDescription,
+                color = note.color.name,
+                is_protected = 0L,
+                encrypted_body = null,
+                iv = null,
+                salt = null,
+                updated_at = now,
+                id = id,
+            )
+            for ((blockId, plain) in decryptedBlocks) {
+                blockQueries.updateText(text = plain, id = blockId)
+            }
+            noteQueries.updatePin(pin = "", is_protected = 0L, updated_at = now, id = id)
+        }
+    }
+
     suspend fun delete(id: Long) {
         noteQueries.delete(id)
     }

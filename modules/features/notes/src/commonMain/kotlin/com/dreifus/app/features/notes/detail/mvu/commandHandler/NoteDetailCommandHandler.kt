@@ -31,7 +31,28 @@ class NoteDetailInitHandler(
     override suspend fun handleCommand(command: NoteDetailCommand.Init): Flow<NoteDetailEvent> =
         flow {
             val note = repository.getById(command.noteId) ?: return@flow
-            emit(NoteDetailEvent.NoteLoaded(note.title, note.color.toCardColor()))
+            val body = note.encryptedBody
+            val iv = note.iv
+            val salt = note.salt
+            val pin = command.unlockedPin
+            val description = if (note.isProtected) {
+                if (body != null && iv != null && salt != null && pin != null) {
+                    NoteEncryptor.decrypt(body, iv, salt, pin).orEmpty()
+                } else {
+                    ""
+                }
+            } else {
+                note.description
+            }
+            emit(
+                NoteDetailEvent.NoteLoaded(
+                    title = note.title,
+                    description = description,
+                    color = note.color.toCardColor(),
+                    isProtected = note.isProtected,
+                    updatedAt = note.updatedAt,
+                )
+            )
             repository.observeBlocksForNote(command.noteId).collect { rawBlocks ->
                 val zone = TimeZone.currentSystemDefault()
                 emit(NoteDetailEvent.BlocksLoaded(rawBlocks.mapIndexed { index, block ->
@@ -168,6 +189,32 @@ class NoteDetailChangeColorHandler(
             val note = repository.getById(command.noteId) ?: return@flow
             repository.update(note.copy(color = command.color.toNoteColor()))
             emit(NoteDetailEvent.NoteColorChanged)
+        }
+}
+
+class NoteDetailUpdateDescriptionHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.UpdateDescription, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.UpdateDescription::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.UpdateDescription): Flow<NoteDetailEvent> =
+        flow {
+            repository.updateDescription(command.noteId, command.description, command.pin)
+            emit(NoteDetailEvent.NoteDescriptionChanged)
+        }
+}
+
+class NoteDetailRemoveProtectionHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NoteDetailCommand.RemoveProtection, NoteDetailCommand, NoteDetailEvent>(
+    NoteDetailCommand.RemoveProtection::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NoteDetailCommand.RemoveProtection): Flow<NoteDetailEvent> =
+        flow {
+            repository.removeProtection(command.noteId, command.pin)
+            emit(NoteDetailEvent.NoteUnlocked)
         }
 }
 

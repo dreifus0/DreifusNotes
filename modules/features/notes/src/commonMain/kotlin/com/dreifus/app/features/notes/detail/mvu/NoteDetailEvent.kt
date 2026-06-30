@@ -12,6 +12,8 @@ sealed interface NoteDetailEvent {
         data class CopyBlockClick(val blockId: Long) : Ui
         data class EditBlockConfirmed(val blockId: Long, val newText: String) : Ui
         data object LockClick : Ui
+        data object UnlockConfirmed : Ui
+        data class DescriptionConfirmed(val description: String) : Ui
         data object PhotoClick : Ui
         data object ChecklistClick : Ui
         data class PhotoSelected(val uri: String) : Ui
@@ -22,12 +24,20 @@ sealed interface NoteDetailEvent {
         data object DeleteNoteConfirmed : Ui
     }
 
-    data class NoteLoaded(val title: String, val color: NoteCardColor) : NoteDetailEvent
+    data class NoteLoaded(
+        val title: String,
+        val description: String,
+        val color: NoteCardColor,
+        val isProtected: Boolean,
+        val updatedAt: Long,
+    ) : NoteDetailEvent
     data class BlocksLoaded(val blocks: List<NoteBlockUiItem>) : NoteDetailEvent
     data object BlockSent : NoteDetailEvent
     data object BlockDeleted : NoteDetailEvent
     data object BlockUpdated : NoteDetailEvent
     data object NoteRenamed : NoteDetailEvent
     data object NoteColorChanged : NoteDetailEvent
+    data object NoteDescriptionChanged : NoteDetailEvent
+    data object NoteUnlocked : NoteDetailEvent
     data object NoteDeleted : NoteDetailEvent
 }

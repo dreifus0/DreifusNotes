@@ -20,6 +20,7 @@
     <string name="checklist_add_button">Add to note</string>
 
     <!-- Note detail -->
+    <string name="note_detail_subtitle">%1$d blocks · %2$s</string>
     <string name="note_detail_input_placeholder">Add to note…</string>
     <string name="note_detail_photo_label">Photo</string>
     <string name="note_detail_delete">Delete</string>
@@ -37,6 +38,13 @@
     <string name="note_menu_rename_label">New name</string>
     <string name="note_menu_change_color">Change color</string>
     <string name="note_menu_change_color_title">Choose color</string>
+    <string name="note_menu_edit_description">Edit description</string>
+    <string name="note_menu_edit_description_title">Edit description</string>
+    <string name="note_menu_edit_description_label">Description</string>
+    <string name="note_menu_unlock">Remove protection</string>
+    <string name="note_menu_unlock_title">Remove protection?</string>
+    <string name="note_menu_unlock_message">This note and its contents will no longer be protected by a PIN.</string>
+    <string name="note_menu_unlock_confirm">Remove</string>
     <string name="note_menu_share">Share</string>
     <string name="note_menu_delete">Delete note</string>
     <string name="note_menu_delete_title">Delete note</string>

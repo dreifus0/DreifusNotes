@@ -37,6 +37,17 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
             state = state,
             effect = NoteDetailEffect.NavigateToPinSetup(state.noteId),
         )
+        NoteDetailEvent.Ui.UnlockConfirmed -> {
+            val pin = state.unlockedPin
+            if (pin == null) Next(state) else Next(
+                state = state,
+                command = NoteDetailCommand.RemoveProtection(state.noteId, pin),
+            )
+        }
+        is NoteDetailEvent.Ui.DescriptionConfirmed -> Next(
+            state = state.copy(description = event.description),
+            command = NoteDetailCommand.UpdateDescription(state.noteId, event.description, state.unlockedPin),
+        )
         NoteDetailEvent.Ui.PhotoClick -> Next(
             state = state,
             effect = NoteDetailEffect.ShowImagePicker,
@@ -54,7 +65,14 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
             command = NoteDetailCommand.InsertChecklistBlock(state.noteId, event.title, event.items, state.unlockedPin),
         )
         is NoteDetailEvent.NoteLoaded -> Next(
-            state = state.copy(title = event.title, color = event.color, isLoading = false),
+            state = state.copy(
+                title = event.title,
+                description = event.description,
+                color = event.color,
+                isProtected = event.isProtected,
+                updatedAt = event.updatedAt,
+                isLoading = false,
+            ),
         )
         is NoteDetailEvent.BlocksLoaded -> Next(
             state = state.copy(blocks = event.blocks, isBlocksLoading = false),
@@ -80,6 +98,10 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
         )
         NoteDetailEvent.NoteRenamed -> Next(state = state)
         NoteDetailEvent.NoteColorChanged -> Next(state = state)
+        NoteDetailEvent.NoteDescriptionChanged -> Next(state = state)
+        NoteDetailEvent.NoteUnlocked -> Next(
+            state = state.copy(isProtected = false, unlockedPin = null),
+        )
         NoteDetailEvent.NoteDeleted -> Next(state = state, effect = NoteDetailEffect.NavigateBack)
     }
 }

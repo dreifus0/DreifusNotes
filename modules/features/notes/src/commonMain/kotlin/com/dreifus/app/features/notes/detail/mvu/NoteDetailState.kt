@@ -7,11 +7,14 @@ import com.dreifus.template.uikit.style.NoteCardColor
 data class NoteDetailState(
     val noteId: Long = 0L,
     val title: String = "",
+    val description: String = "",
     val color: NoteCardColor = NoteCardColor.Default,
     val blocks: List<NoteBlockUiItem> = emptyList(),
     val inputText: String = "",
     val isLoading: Boolean = true,
     val isBlocksLoading: Boolean = true,
+    val isProtected: Boolean = false,
+    val updatedAt: Long = 0L,
     val unlockedPin: String? = null,
 )
 

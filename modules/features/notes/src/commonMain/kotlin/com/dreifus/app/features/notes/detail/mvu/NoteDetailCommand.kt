@@ -11,5 +11,7 @@ sealed interface NoteDetailCommand {
     data class UpdateBlock(val blockId: Long, val text: String, val pin: String? = null) : NoteDetailCommand
     data class RenameNote(val noteId: Long, val newTitle: String) : NoteDetailCommand
     data class ChangeNoteColor(val noteId: Long, val color: NoteCardColor) : NoteDetailCommand
+    data class UpdateDescription(val noteId: Long, val description: String, val pin: String? = null) : NoteDetailCommand
+    data class RemoveProtection(val noteId: Long, val pin: String) : NoteDetailCommand
     data class DeleteNote(val noteId: Long) : NoteDetailCommand
 }

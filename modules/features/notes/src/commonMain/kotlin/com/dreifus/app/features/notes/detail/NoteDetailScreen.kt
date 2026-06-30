@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,14 +53,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import com.dreifus.permissions.AppPermission
+import com.dreifus.permissions.rememberPermissionRequester
 import com.dreifus.app.features.notes.detail.mvu.NoteBlockUiItem
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEffect
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEvent
@@ -70,6 +76,7 @@ import com.dreifus.template.uikit.icon.ArrowLeft24
 import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.GlassIcon
 import com.dreifus.template.uikit.icon.Lock24
+import com.dreifus.template.uikit.icon.LockOpen24
 import com.dreifus.template.uikit.icon.MoreHoriz24
 import com.dreifus.template.uikit.icon.Plus24
 import com.dreifus.template.uikit.icon.Send24
@@ -80,6 +87,13 @@ import com.dreifus.template.uikit.style.NoteCardColor
 import com.dreifus.template.uikit.textField.AppTextField
 import com.dreifus.template.uikit.toolbar.AppToolbar
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
 import dreifusnotes.modules.features.notes.generated.resources.Res
 import dreifusnotes.modules.features.notes.generated.resources.note_block_copy
 import dreifusnotes.modules.features.notes.generated.resources.note_block_edit
@@ -91,8 +105,15 @@ import dreifusnotes.modules.features.notes.generated.resources.note_detail_add_p
 import dreifusnotes.modules.features.notes.generated.resources.note_detail_delete
 import dreifusnotes.modules.features.notes.generated.resources.note_detail_input_placeholder
 import dreifusnotes.modules.features.notes.generated.resources.note_detail_photo_label
+import dreifusnotes.modules.features.notes.generated.resources.note_detail_subtitle
 import dreifusnotes.modules.features.notes.generated.resources.note_menu_change_color
 import dreifusnotes.modules.features.notes.generated.resources.note_menu_change_color_title
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_edit_description
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_edit_description_label
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_edit_description_title
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_unlock_confirm
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_unlock_message
+import dreifusnotes.modules.features.notes.generated.resources.note_menu_unlock_title
 import dreifusnotes.modules.features.notes.generated.resources.note_menu_delete
 import dreifusnotes.modules.features.notes.generated.resources.note_menu_delete_confirm
 import dreifusnotes.modules.features.notes.generated.resources.note_menu_delete_message
@@ -118,6 +139,7 @@ class NoteDetailScreen(
         val imagePickerLauncher = rememberImagePicker { uri ->
             if (uri != null) vm.dispatch(NoteDetailEvent.Ui.PhotoSelected(uri))
         }
+        val permissionRequester = rememberPermissionRequester()
         val clipboardManager = LocalClipboardManager.current
         val shareLauncher = rememberShareLauncher()
 
@@ -131,7 +153,9 @@ class NoteDetailScreen(
                     is NoteDetailEffect.NavigateToPinSetup -> vm.pinNavigation.openPinSetup(effect.noteId) { id, pin ->
                         regularNav.replaceLast(NoteDetailScreen(id, pin))
                     }
-                    NoteDetailEffect.ShowImagePicker -> imagePickerLauncher()
+                    NoteDetailEffect.ShowImagePicker -> permissionRequester.request(AppPermission.Gallery) { granted ->
+                        if (granted) imagePickerLauncher()
+                    }
                     NoteDetailEffect.ShowChecklistSheet -> bottomSheetNav.navigate(
                         CreateChecklistBottomSheet { title, items ->
                             vm.dispatch(NoteDetailEvent.Ui.ChecklistConfirmed(title, items))
@@ -157,7 +181,10 @@ private fun NoteDetailContent(
     var moreAnchorSize by remember { mutableStateOf(IntSize.Zero) }
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameValue by remember { mutableStateOf("") }
+    var showDescriptionDialog by remember { mutableStateOf(false) }
+    var descriptionValue by remember { mutableStateOf("") }
     var showColorDialog by remember { mutableStateOf(false) }
+    var showUnlockDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -174,8 +201,11 @@ private fun NoteDetailContent(
             },
             endBlock = {
                 GlassIcon(
-                    icon = AppIcons.Lock24,
-                    onClick = { onEvent(NoteDetailEvent.Ui.LockClick) },
+                    icon = if (state.isProtected) AppIcons.LockOpen24 else AppIcons.Lock24,
+                    onClick = {
+                        if (state.isProtected) showUnlockDialog = true
+                        else onEvent(NoteDetailEvent.Ui.LockClick)
+                    },
                     size = 36.dp,
                     iconSize = 16.dp,
                 )
@@ -193,6 +223,22 @@ private fun NoteDetailContent(
                 )
             },
         )
+
+        if (!state.isLoading) {
+            Text(
+                text = stringResource(
+                    Res.string.note_detail_subtitle,
+                    state.blocks.size,
+                    state.updatedAt.toDisplayDate(),
+                ),
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colors.contentTertiary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 8.dp),
+            )
+        }
 
         val palette = state.color.palette()
         Box(
@@ -252,6 +298,15 @@ private fun NoteDetailContent(
                     },
                 ),
                 ContextMenuItem(
+                    label = stringResource(Res.string.note_menu_edit_description),
+                    icon = AppIcons.Edit24,
+                    onClick = {
+                        showMoreMenu = false
+                        descriptionValue = state.description
+                        showDescriptionDialog = true
+                    },
+                ),
+                ContextMenuItem(
                     label = stringResource(Res.string.note_menu_change_color),
                     icon = AppIcons.Palette24,
                     onClick = { showMoreMenu = false; showColorDialog = true },
@@ -272,36 +327,64 @@ private fun NoteDetailContent(
     }
 
     if (showRenameDialog) {
+        EditTextDialog(
+            title = stringResource(Res.string.note_menu_rename_title),
+            label = stringResource(Res.string.note_menu_rename_label),
+            value = renameValue,
+            onValueChange = { renameValue = it },
+            onConfirm = {
+                showRenameDialog = false
+                if (renameValue.isNotBlank()) onEvent(NoteDetailEvent.Ui.RenameConfirmed(renameValue))
+            },
+            onDismiss = { showRenameDialog = false },
+        )
+    }
+
+    if (showDescriptionDialog) {
+        EditTextDialog(
+            title = stringResource(Res.string.note_menu_edit_description_title),
+            label = stringResource(Res.string.note_menu_edit_description_label),
+            value = descriptionValue,
+            onValueChange = { descriptionValue = it },
+            onConfirm = {
+                showDescriptionDialog = false
+                onEvent(NoteDetailEvent.Ui.DescriptionConfirmed(descriptionValue))
+            },
+            onDismiss = { showDescriptionDialog = false },
+        )
+    }
+
+    if (showUnlockDialog) {
         AlertDialog(
-            onDismissRequest = { showRenameDialog = false },
+            onDismissRequest = { showUnlockDialog = false },
             title = {
                 Text(
-                    text = stringResource(Res.string.note_menu_rename_title),
+                    text = stringResource(Res.string.note_menu_unlock_title),
                     style = AppTheme.typography.headlineLarge,
                     color = AppTheme.colors.contentPrimary,
                 )
             },
             text = {
-                AppTextField(
-                    value = renameValue,
-                    onValueChange = { renameValue = it },
-                    labelText = stringResource(Res.string.note_menu_rename_label),
+                Text(
+                    text = stringResource(Res.string.note_menu_unlock_message),
+                    style = AppTheme.typography.bodyMedium,
+                    color = AppTheme.colors.contentSecondary,
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
-                    showRenameDialog = false
-                    if (renameValue.isNotBlank()) onEvent(NoteDetailEvent.Ui.RenameConfirmed(renameValue))
+                    showUnlockDialog = false
+                    onEvent(NoteDetailEvent.Ui.UnlockConfirmed)
                 }) {
                     Text(
-                        text = stringResource(Res.string.note_block_edit_save),
+                        text = stringResource(Res.string.note_menu_unlock_confirm),
                         color = AppTheme.colors.accentPrimary,
                         style = AppTheme.typography.headlineMedium,
                     )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) {
+                TextButton(onClick = { showUnlockDialog = false }) {
                     Text(
                         text = stringResource(Res.string.note_block_edit_cancel),
                         color = AppTheme.colors.contentSecondary,
@@ -408,6 +491,65 @@ private fun NoteDetailContent(
 }
 
 @Composable
+private fun EditTextDialog(
+    title: String,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                style = AppTheme.typography.headlineLarge,
+                color = AppTheme.colors.contentPrimary,
+            )
+        },
+        text = {
+            AppTextField(
+                value = value,
+                onValueChange = onValueChange,
+                labelText = label,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = stringResource(Res.string.note_block_edit_save),
+                    color = AppTheme.colors.accentPrimary,
+                    style = AppTheme.typography.headlineMedium,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(Res.string.note_block_edit_cancel),
+                    color = AppTheme.colors.contentSecondary,
+                    style = AppTheme.typography.headlineMedium,
+                )
+            }
+        },
+        containerColor = AppTheme.colors.backgroundBase,
+        shape = AppTheme.shapes.dialog,
+    )
+}
+
+private fun Long.toDisplayDate(): String {
+    val zone = TimeZone.currentSystemDefault()
+    val date = Instant.fromEpochMilliseconds(this).toLocalDateTime(zone).date
+    val today = Clock.System.todayIn(zone)
+    return when (date) {
+        today -> "TODAY"
+        today.minus(1, DateTimeUnit.DAY) -> "YESTERDAY"
+        else -> "${date.month.name.take(3)} ${date.dayOfMonth}"
+    }
+}
+
+@Composable
 private fun BlockItemWithHeader(
     block: NoteBlockUiItem,
     onEvent: (NoteDetailEvent.Ui) -> Unit,
@@ -438,7 +580,7 @@ private fun BlockItemWithHeader(
         ) {
             when (block) {
                 is NoteBlockUiItem.Text -> TextBlockContent(block)
-                is NoteBlockUiItem.Photo -> PhotoBlockContent()
+                is NoteBlockUiItem.Photo -> PhotoBlockContent(block.uri)
                 is NoteBlockUiItem.Checklist -> ChecklistBlockContent(block)
             }
         }
@@ -570,21 +712,21 @@ private fun TextBlockContent(block: NoteBlockUiItem.Text) {
 }
 
 @Composable
-private fun PhotoBlockContent() {
+private fun PhotoBlockContent(uri: String) {
+    val imageShape = RoundedCornerShape(8.dp)
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
-            .background(
-                AppTheme.colors.contentTertiary.copy(alpha = 0.12f),
-                RoundedCornerShape(8.dp),
-            ),
+            .heightIn(min = 120.dp)
+            .clip(imageShape)
+            .background(AppTheme.colors.contentTertiary.copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = stringResource(Res.string.note_detail_photo_label),
-            style = AppTheme.typography.bodyMedium,
-            color = AppTheme.colors.contentTertiary,
+        AsyncImage(
+            model = uri,
+            contentDescription = stringResource(Res.string.note_detail_photo_label),
+            modifier = Modifier.fillMaxWidth(),
+            contentScale = ContentScale.FillWidth,
         )
     }
 }

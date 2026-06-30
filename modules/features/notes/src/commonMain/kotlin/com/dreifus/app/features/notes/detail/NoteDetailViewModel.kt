@@ -17,7 +17,9 @@ import com.dreifus.app.features.notes.detail.mvu.commandHandler.NoteDetailInitHa
 import com.dreifus.app.features.notes.detail.mvu.commandHandler.NoteDetailInsertBlockHandler
 import com.dreifus.app.features.notes.detail.mvu.commandHandler.NoteDetailInsertChecklistBlockHandler
 import com.dreifus.app.features.notes.detail.mvu.commandHandler.NoteDetailInsertPhotoBlockHandler
+import com.dreifus.app.features.notes.detail.mvu.commandHandler.NoteDetailRemoveProtectionHandler
 import com.dreifus.app.features.notes.detail.mvu.commandHandler.NoteDetailRenameNoteHandler
+import com.dreifus.app.features.notes.detail.mvu.commandHandler.NoteDetailUpdateDescriptionHandler
 import com.yavorcool.mvucore.impl.Store
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
@@ -46,6 +48,8 @@ class NoteDetailViewModel(
             NoteDetailUpdateBlockHandler(repository),
             NoteDetailRenameNoteHandler(repository),
             NoteDetailChangeColorHandler(repository),
+            NoteDetailUpdateDescriptionHandler(repository),
+            NoteDetailRemoveProtectionHandler(repository),
             NoteDetailDeleteNoteHandler(repository),
         ),
     )

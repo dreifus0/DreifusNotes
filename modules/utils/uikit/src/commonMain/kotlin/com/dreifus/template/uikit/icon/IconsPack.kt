@@ -35,6 +35,10 @@ val AppIcons.Lock24 by cachedIcon {
     rememberPainter(LockIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
 }
 
+val AppIcons.LockOpen24 by cachedIcon {
+    rememberPainter(LockOpenIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
+}
+
 val AppIcons.ChevronRight24 by cachedIcon {
     rememberPainter(ChevronRightIcon).wrapWith(tint = AppTheme.colors.contentTertiary)
 }
@@ -180,6 +184,23 @@ private val LockIcon: ImageVector by lazy {
             curveTo(8f, 4.8f, 9.8f, 3f, 12f, 3f)
             curveTo(14.2f, 3f, 16f, 4.8f, 16f, 7f)
             lineTo(16f, 11f)
+        }
+    }
+}
+
+private val LockOpenIcon: ImageVector by lazy {
+    icon24(name = "LockOpen") {
+        stroke {
+            // body
+            moveTo(5f, 11f)
+            lineTo(19f, 11f)
+            lineTo(19f, 21f)
+            lineTo(5f, 21f)
+            close()
+            // open shackle, swung to the left
+            moveTo(8f, 11f); lineTo(8f, 7f)
+            curveTo(8f, 4.8f, 9.8f, 3f, 12f, 3f)
+            curveTo(14.2f, 3f, 16f, 4.8f, 16f, 7f)
         }
     }
 }

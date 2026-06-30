@@ -14,9 +14,11 @@ kotlin {
             implementation(libs.metrox.viewmodel.compose)
             implementation(compose.components.resources)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.coil.compose)
             implementation(projects.modules.utils.arch)
             implementation(projects.modules.utils.uikit)
             implementation(projects.modules.utils.coreNavigation)
+            implementation(projects.modules.utils.permissions)
             implementation(projects.modules.data.notes)
         }
         androidMain.dependencies {
