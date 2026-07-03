@@ -1,6 +1,8 @@
 package com.dreifus.app.di
 
 import androidx.lifecycle.ViewModel
+import com.dreifus.app.data.preferences.DefaultThemePreferences
+import com.dreifus.app.data.preferences.ThemePreferences
 import com.dreifus.app.features.notes.main.NotesListScreen
 import com.dreifus.app.features.settings.main.SettingsScreen
 import com.dreifus.navigation.controller.NavControllersHolder
@@ -16,7 +18,9 @@ class RootViewModel : ViewModel() {
         ),
     )
 
+    val themePreferences: ThemePreferences = DefaultThemePreferences(createThemeStorage())
+
     private val graph = createGraphFactory<AppGraph.Factory>()
-        .create(createDatabaseDriverFactory(), navControllersHolder)
+        .create(createDatabaseDriverFactory(), navControllersHolder, themePreferences)
     val factory: MetroViewModelFactory = graph.metroViewModelFactory
 }

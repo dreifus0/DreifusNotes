@@ -19,4 +19,21 @@
     <!-- Biometric prompt -->
     <string name="settings_biometric_title">Confirm reset</string>
     <string name="settings_biometric_subtitle">Authenticate to delete all notes</string>
+
+    <!-- Reset confirmation dialog (no device credential available) -->
+    <string name="settings_reset_confirm_title">Erase all notes?</string>
+    <string name="settings_reset_confirm_message">This will permanently delete all your notes. This action cannot be undone.</string>
+    <string name="settings_reset_confirm_action">Erase</string>
+    <string name="settings_reset_confirm_cancel">Cancel</string>
+
+    <!-- Appearance screen -->
+    <string name="appearance_title">Appearance</string>
+    <string name="appearance_section_theme">Theme</string>
+    <string name="appearance_system">System</string>
+    <string name="appearance_system_sub">Match device setting</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_light_sub">Always light theme</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="appearance_dark_sub">Always dark theme</string>
+    <string name="appearance_footer">Theme changes apply instantly across the app.</string>
 </resources>

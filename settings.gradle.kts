@@ -23,6 +23,7 @@ include(
     ":modules:utils:core-navigation",
     ":modules:utils:permissions",
     ":modules:data:notes",
+    ":modules:data:preferences",
     ":modules:features:pin",
     ":modules:features:notes",
     ":modules:features:settings",

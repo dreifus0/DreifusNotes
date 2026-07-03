@@ -5,6 +5,14 @@ import com.yavorcool.mvucore.Update
 
 val SettingsUpdate = Update<SettingsState, SettingsEvent, SettingsCommand, SettingsEffect> { state, event ->
     when (event) {
+        SettingsEvent.Ui.Init -> Next(
+            state = state,
+            command = SettingsCommand.ObserveTheme,
+        )
+        SettingsEvent.Ui.AppearanceClick -> Next(
+            state = state,
+            effect = SettingsEffect.NavigateToAppearance,
+        )
         SettingsEvent.Ui.ResetDataClick -> Next(
             state = state.copy(isBiometricPending = true),
         )
@@ -19,9 +27,22 @@ val SettingsUpdate = Update<SettingsState, SettingsEvent, SettingsCommand, Setti
         SettingsEvent.Ui.BiometricDismissed -> Next(
             state = state.copy(isBiometricPending = false),
         )
+        SettingsEvent.Ui.BiometricUnavailable -> Next(
+            state = state.copy(isBiometricPending = false, showResetConfirmDialog = true),
+        )
+        SettingsEvent.Ui.ResetConfirmed -> Next(
+            state = state.copy(showResetConfirmDialog = false, isResetting = true),
+            command = SettingsCommand.ResetAllData,
+        )
+        SettingsEvent.Ui.ResetConfirmDismissed -> Next(
+            state = state.copy(showResetConfirmDialog = false),
+        )
         SettingsEvent.ResetComplete -> Next(
             state = state.copy(isResetting = false),
             effect = SettingsEffect.DataReset,
+        )
+        is SettingsEvent.ThemeModeLoaded -> Next(
+            state = state.copy(themeMode = event.mode),
         )
     }
 }

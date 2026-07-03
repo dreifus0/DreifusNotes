@@ -9,4 +9,5 @@ expect fun BiometricAuthEffect(
     subtitle: String,
     onAuthenticated: () -> Unit,
     onDismissed: () -> Unit,
+    onNoCredential: () -> Unit,
 )

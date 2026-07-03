@@ -3,12 +3,14 @@ package com.dreifus.app.features.settings.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dreifus.app.data.notes.NotesRepository
+import com.dreifus.app.data.preferences.ThemePreferences
 import com.dreifus.app.features.settings.main.mvu.SettingsCommand
 import com.dreifus.app.features.settings.main.mvu.SettingsEffect
 import com.dreifus.app.features.settings.main.mvu.SettingsEvent
 import com.dreifus.app.features.settings.main.mvu.SettingsState
 import com.dreifus.app.features.settings.main.mvu.SettingsUpdate
 import com.dreifus.app.features.settings.main.mvu.commandHandler.SettingsCommandHandler
+import com.dreifus.app.features.settings.main.mvu.commandHandler.SettingsObserveThemeHandler
 import com.yavorcool.mvucore.impl.Store
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
@@ -22,13 +24,17 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesIntoMap(AppScope::class)
 class SettingsViewModel(
     repository: NotesRepository,
+    themePreferences: ThemePreferences,
 ) : ViewModel() {
 
     private val store =
         Store<SettingsState, SettingsEvent, SettingsEvent.Ui, SettingsCommand, SettingsEffect>(
             initialState = SettingsState(),
             update = SettingsUpdate,
-            commandHandlers = listOf(SettingsCommandHandler(repository)),
+            commandHandlers = listOf(
+                SettingsCommandHandler(repository),
+                SettingsObserveThemeHandler(themePreferences),
+            ),
         )
 
     val state: StateFlow<SettingsState> = store.state

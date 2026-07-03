@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,10 +32,13 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dreifus.app.data.preferences.ThemeMode
+import com.dreifus.app.features.settings.appearance.AppearanceScreen
 import com.dreifus.app.features.settings.biometric.BiometricAuthEffect
 import com.dreifus.app.features.settings.main.mvu.SettingsEffect
 import com.dreifus.app.features.settings.main.mvu.SettingsEvent
 import com.dreifus.app.features.settings.main.mvu.SettingsState
+import com.dreifus.navigation.controller.Navigation
 import com.dreifus.navigation.ui.RootScreenWithTabs
 import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.ChevronRight24
@@ -46,11 +51,17 @@ import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import dreifusnotes.modules.features.settings.generated.resources.Res
+import dreifusnotes.modules.features.settings.generated.resources.appearance_dark
+import dreifusnotes.modules.features.settings.generated.resources.appearance_light
+import dreifusnotes.modules.features.settings.generated.resources.appearance_system
 import dreifusnotes.modules.features.settings.generated.resources.settings_appearance
-import dreifusnotes.modules.features.settings.generated.resources.settings_appearance_value
 import dreifusnotes.modules.features.settings.generated.resources.settings_biometric_subtitle
 import dreifusnotes.modules.features.settings.generated.resources.settings_biometric_title
 import dreifusnotes.modules.features.settings.generated.resources.settings_privacy_policy
+import dreifusnotes.modules.features.settings.generated.resources.settings_reset_confirm_action
+import dreifusnotes.modules.features.settings.generated.resources.settings_reset_confirm_cancel
+import dreifusnotes.modules.features.settings.generated.resources.settings_reset_confirm_message
+import dreifusnotes.modules.features.settings.generated.resources.settings_reset_confirm_title
 import dreifusnotes.modules.features.settings.generated.resources.settings_reset_data
 import dreifusnotes.modules.features.settings.generated.resources.settings_reset_data_subtitle
 import dreifusnotes.modules.features.settings.generated.resources.settings_section_about
@@ -70,11 +81,16 @@ class SettingsScreen : RootScreenWithTabs {
         val vm = metroViewModel<SettingsViewModel>()
         val state by vm.state.collectAsStateWithLifecycle()
         val uriHandler = LocalUriHandler.current
+        val regularNav = Navigation.regular
 
+        LaunchedEffect(Unit) {
+            vm.dispatch(SettingsEvent.Ui.Init)
+        }
         LaunchedEffect(Unit) {
             vm.effects.collect { effect ->
                 when (effect) {
                     SettingsEffect.DataReset -> Unit
+                    SettingsEffect.NavigateToAppearance -> regularNav.navigate(AppearanceScreen())
                     is SettingsEffect.OpenUrl -> uriHandler.openUri(effect.url)
                 }
             }
@@ -86,7 +102,15 @@ class SettingsScreen : RootScreenWithTabs {
             subtitle = stringResource(Res.string.settings_biometric_subtitle),
             onAuthenticated = { vm.dispatch(SettingsEvent.Ui.BiometricSuccess) },
             onDismissed = { vm.dispatch(SettingsEvent.Ui.BiometricDismissed) },
+            onNoCredential = { vm.dispatch(SettingsEvent.Ui.BiometricUnavailable) },
         )
+
+        if (state.showResetConfirmDialog) {
+            ResetConfirmDialog(
+                onConfirm = { vm.dispatch(SettingsEvent.Ui.ResetConfirmed) },
+                onDismiss = { vm.dispatch(SettingsEvent.Ui.ResetConfirmDismissed) },
+            )
+        }
 
         SettingsContent(state = state, onEvent = vm::dispatch)
     }
@@ -119,11 +143,11 @@ private fun SettingsContent(
                 SettingsGroup {
                     SettingsRow(
                         label = stringResource(Res.string.settings_appearance),
-                        subtitle = stringResource(Res.string.settings_appearance_value),
+                        subtitle = themeModeLabel(state.themeMode),
                         iconBackground = Color(0xFF9FE1CB),
                         icon = { AppIcons.Theme24(tint = Color(0xFF04342C)) },
                         showDivider = false,
-                        onClick = {},
+                        onClick = { onEvent(SettingsEvent.Ui.AppearanceClick) },
                         trailing = { AppIcons.ChevronRight24(tint = AppTheme.colors.contentTertiary) },
                     )
                 }
@@ -248,6 +272,57 @@ private fun SettingsRow(
             )
         }
     }
+}
+
+@Composable
+private fun ResetConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(Res.string.settings_reset_confirm_title),
+                style = AppTheme.typography.headlineLarge,
+                color = AppTheme.colors.contentPrimary,
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(Res.string.settings_reset_confirm_message),
+                style = AppTheme.typography.bodyMedium,
+                color = AppTheme.colors.contentSecondary,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = stringResource(Res.string.settings_reset_confirm_action),
+                    color = AppTheme.colors.accentError,
+                    style = AppTheme.typography.headlineMedium,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(Res.string.settings_reset_confirm_cancel),
+                    color = AppTheme.colors.contentSecondary,
+                    style = AppTheme.typography.headlineMedium,
+                )
+            }
+        },
+        containerColor = AppTheme.colors.backgroundBase,
+        shape = AppTheme.shapes.dialog,
+    )
+}
+
+@Composable
+private fun themeModeLabel(mode: ThemeMode): String = when (mode) {
+    ThemeMode.System -> stringResource(Res.string.appearance_system)
+    ThemeMode.Light -> stringResource(Res.string.appearance_light)
+    ThemeMode.Dark -> stringResource(Res.string.appearance_dark)
 }
 
 @Preview
