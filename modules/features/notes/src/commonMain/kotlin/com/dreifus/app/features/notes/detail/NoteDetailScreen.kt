@@ -49,6 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,7 +64,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.gestures.scrollBy
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import com.dreifus.permissions.AppPermission
 import com.dreifus.permissions.rememberPermissionRequester
 import com.dreifus.app.features.notes.detail.mvu.NoteBlockUiItem
@@ -254,10 +257,21 @@ private fun NoteDetailContent(
             BlocksShimmer(modifier = Modifier.weight(1f).fillMaxWidth())
         } else {
             val listState = rememberLazyListState()
-            val lastBlockId = state.blocks.lastOrNull()?.id
-            LaunchedEffect(lastBlockId) {
-                val total = listState.layoutInfo.totalItemsCount
-                if (total > 0) listState.animateScrollToItem(total - 1)
+            val blockCount = state.blocks.size
+            // Bumped whenever a photo finishes loading; photos (Coil) load asynchronously and
+            // grow their block after layout, pushing the real bottom down, so we re-scroll then.
+            var imageLoadedTick by remember { mutableStateOf(0) }
+            LaunchedEffect(blockCount, imageLoadedTick) {
+                if (blockCount == 0) return@LaunchedEffect
+                // Jump close to the last block, then push to the true bottom in pixels (a tall
+                // photo can be higher than the viewport, so scrollToItem alone shows only its top).
+                listState.scrollToItem(blockCount - 1)
+                var guard = 0
+                while (listState.canScrollForward && guard < 30) {
+                    listState.scrollBy(100_000f)
+                    withFrameNanos {}
+                    guard++
+                }
             }
 
             LazyColumn(
@@ -267,7 +281,11 @@ private fun NoteDetailContent(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(state.blocks, key = { it.id }) { block ->
-                    BlockItemWithHeader(block = block, onEvent = onEvent)
+                    BlockItemWithHeader(
+                        block = block,
+                        onEvent = onEvent,
+                        onImageLoaded = { imageLoadedTick++ },
+                    )
                 }
             }
         }
@@ -553,6 +571,7 @@ private fun Long.toDisplayDate(): String {
 private fun BlockItemWithHeader(
     block: NoteBlockUiItem,
     onEvent: (NoteDetailEvent.Ui) -> Unit,
+    onImageLoaded: () -> Unit = {},
 ) {
     Column {
         if (block.dayHeader != null) {
@@ -580,7 +599,7 @@ private fun BlockItemWithHeader(
         ) {
             when (block) {
                 is NoteBlockUiItem.Text -> TextBlockContent(block)
-                is NoteBlockUiItem.Photo -> PhotoBlockContent(block.uri)
+                is NoteBlockUiItem.Photo -> PhotoBlockContent(block.uri, onImageLoaded)
                 is NoteBlockUiItem.Checklist -> ChecklistBlockContent(block)
             }
         }
@@ -712,7 +731,7 @@ private fun TextBlockContent(block: NoteBlockUiItem.Text) {
 }
 
 @Composable
-private fun PhotoBlockContent(uri: String) {
+private fun PhotoBlockContent(uri: String, onImageLoaded: () -> Unit = {}) {
     val imageShape = RoundedCornerShape(8.dp)
     Box(
         modifier = Modifier
@@ -727,6 +746,9 @@ private fun PhotoBlockContent(uri: String) {
             contentDescription = stringResource(Res.string.note_detail_photo_label),
             modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.FillWidth,
+            onState = { imageState ->
+                if (imageState is AsyncImagePainter.State.Success) onImageLoaded()
+            },
         )
     }
 }
