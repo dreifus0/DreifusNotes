@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.style.AppIcon
 import com.dreifus.template.uikit.style.AppTheme
 
@@ -41,6 +42,7 @@ fun <T> TabBar(
                 .weight(1f)
                 .clip(TabShape)
                 .background(AppTheme.colors.bgCardPrimary)
+                .glassBorder(shape = TabShape)
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

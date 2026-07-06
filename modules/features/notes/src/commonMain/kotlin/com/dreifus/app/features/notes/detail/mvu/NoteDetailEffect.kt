@@ -7,4 +7,6 @@ sealed interface NoteDetailEffect {
     data object ShowChecklistSheet : NoteDetailEffect
     data class CopyToClipboard(val text: String) : NoteDetailEffect
     data class ShareNote(val text: String) : NoteDetailEffect
+    data class CopyImage(val uri: String) : NoteDetailEffect
+    data class ShareImage(val uri: String) : NoteDetailEffect
 }

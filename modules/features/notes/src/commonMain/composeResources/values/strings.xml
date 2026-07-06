@@ -27,6 +27,7 @@
     <string name="note_detail_add_photo">Photo</string>
     <string name="note_detail_add_checklist">Checklist</string>
     <string name="note_block_copy">Copy</string>
+    <string name="note_block_share">Share</string>
     <string name="note_block_edit">Edit</string>
     <string name="note_block_edit_title">Edit block</string>
     <string name="note_block_edit_save">Save</string>

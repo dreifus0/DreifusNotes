@@ -57,5 +57,5 @@ If this policy changes, the updated version will be published in this repository
 
 If you have any questions about this privacy policy, please contact:
 
-**Email:** spoof1511@gmail.com  
+**Email:** dreifus1511@gmail.com  
 **GitHub:** https://github.com/dreifus0/DreifusNotes

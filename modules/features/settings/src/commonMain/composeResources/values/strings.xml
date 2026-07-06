@@ -10,6 +10,8 @@
     <!-- Rows -->
     <string name="settings_appearance">Appearance</string>
     <string name="settings_appearance_value">System</string>
+    <string name="settings_note_colors">Note colors</string>
+    <string name="settings_note_colors_subtitle">Favorite colors for notes</string>
     <string name="settings_reset_data">Reset data</string>
     <string name="settings_reset_data_subtitle">Erase all notes</string>
     <string name="settings_version">Version</string>
@@ -36,4 +38,13 @@
     <string name="appearance_dark">Dark</string>
     <string name="appearance_dark_sub">Always dark theme</string>
     <string name="appearance_footer">Theme changes apply instantly across the app.</string>
+
+    <!-- Note colors screen -->
+    <string name="note_colors_title">Note colors</string>
+    <string name="note_colors_section">Favorite colors</string>
+    <string name="note_colors_selected_count">%1$d of %2$d</string>
+    <string name="note_colors_footer">Add up to 10 favorite colors. They are offered when you create a note or change its color. Tap a color to select it, then remove it with the trash icon.</string>
+    <string name="note_colors_picker_title">New color</string>
+    <string name="note_colors_picker_add">Add</string>
+    <string name="note_colors_picker_cancel">Cancel</string>
 </resources>

@@ -13,6 +13,10 @@ val SettingsUpdate = Update<SettingsState, SettingsEvent, SettingsCommand, Setti
             state = state,
             effect = SettingsEffect.NavigateToAppearance,
         )
+        SettingsEvent.Ui.NoteColorsClick -> Next(
+            state = state,
+            effect = SettingsEffect.NavigateToNoteColors,
+        )
         SettingsEvent.Ui.ResetDataClick -> Next(
             state = state.copy(isBiometricPending = true),
         )

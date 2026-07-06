@@ -1,7 +1,9 @@
 package com.dreifus.app.di
 
 import androidx.lifecycle.ViewModel
+import com.dreifus.app.data.preferences.DefaultFavoriteColorsPreferences
 import com.dreifus.app.data.preferences.DefaultThemePreferences
+import com.dreifus.app.data.preferences.FavoriteColorsPreferences
 import com.dreifus.app.data.preferences.ThemePreferences
 import com.dreifus.app.features.notes.main.NotesListScreen
 import com.dreifus.app.features.settings.main.SettingsScreen
@@ -19,8 +21,10 @@ class RootViewModel : ViewModel() {
     )
 
     val themePreferences: ThemePreferences = DefaultThemePreferences(createThemeStorage())
+    private val favoriteColorsPreferences: FavoriteColorsPreferences =
+        DefaultFavoriteColorsPreferences(createFavoriteColorsStorage())
 
     private val graph = createGraphFactory<AppGraph.Factory>()
-        .create(createDatabaseDriverFactory(), navControllersHolder, themePreferences)
+        .create(createDatabaseDriverFactory(), navControllersHolder, themePreferences, favoriteColorsPreferences)
     val factory: MetroViewModelFactory = graph.metroViewModelFactory
 }

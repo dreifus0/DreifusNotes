@@ -1,7 +1,6 @@
 package com.dreifus.app.features.notes.main.mvu.commandHandler
 
 import com.dreifus.app.data.notes.NotesRepository
-import com.dreifus.app.data.notes.model.NoteColor
 import com.dreifus.app.features.notes.main.mvu.NoteUiItem
 import com.dreifus.app.features.notes.main.mvu.NotesListCommand
 import com.dreifus.app.features.notes.main.mvu.NotesListEvent
@@ -36,19 +35,12 @@ class NotesListCommandHandler(
                     title = note.title,
                     body = if (note.isProtected) "•••••••••••••••••••••••••••••" else note.description,
                     date = note.updatedAt.toDisplayDate(),
-                    color = note.color.toCardColor(),
+                    color = NoteCardColor.deserialize(note.color),
                     isProtected = note.isProtected,
                 )
             })
         }
     }
-}
-
-private fun NoteColor.toCardColor() = when (this) {
-    NoteColor.Purple -> NoteCardColor.Purple
-    NoteColor.Pink -> NoteCardColor.Pink
-    NoteColor.Green -> NoteCardColor.Green
-    NoteColor.Orange -> NoteCardColor.Orange
 }
 
 private fun Long.toDisplayDate(): String {

@@ -5,8 +5,9 @@ import com.dreifus.app.data.notes.NotesRepository
 import com.dreifus.app.data.notes.decodeEncryptedData
 import com.dreifus.app.data.notes.encodeToString
 import com.dreifus.app.data.notes.model.NoteBlockType
-import com.dreifus.app.data.notes.model.NoteColor
+import com.dreifus.app.data.preferences.FavoriteColorsPreferences
 import com.dreifus.app.features.notes.detail.mvu.NoteBlockUiItem
+import com.dreifus.app.features.notes.detail.mvu.parseChecklistItem
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailCommand
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEvent
 import com.dreifus.template.uikit.style.NoteCardColor
@@ -24,12 +25,18 @@ import kotlinx.datetime.todayIn
 
 class NoteDetailInitHandler(
     private val repository: NotesRepository,
+    private val favoriteColorsPreferences: FavoriteColorsPreferences,
 ) : FilteringHandlerToFlow<NoteDetailCommand.Init, NoteDetailCommand, NoteDetailEvent>(
     NoteDetailCommand.Init::class,
     cancelPreviousOnNewCommand = false,
 ) {
     override suspend fun handleCommand(command: NoteDetailCommand.Init): Flow<NoteDetailEvent> =
         flow {
+            emit(
+                NoteDetailEvent.FavoriteColorsLoaded(
+                    NoteCardColor.favoritesFrom(favoriteColorsPreferences.favorites.value)
+                )
+            )
             val note = repository.getById(command.noteId) ?: return@flow
             val body = note.encryptedBody
             val iv = note.iv
@@ -48,7 +55,7 @@ class NoteDetailInitHandler(
                 NoteDetailEvent.NoteLoaded(
                     title = note.title,
                     description = description,
-                    color = note.color.toCardColor(),
+                    color = NoteCardColor.deserialize(note.color),
                     isProtected = note.isProtected,
                     updatedAt = note.updatedAt,
                 )
@@ -80,7 +87,7 @@ class NoteDetailInitHandler(
                             NoteBlockUiItem.Checklist(
                                 id = block.id,
                                 title = lines.firstOrNull().orEmpty(),
-                                items = lines.drop(1).filter(String::isNotBlank),
+                                items = lines.drop(1).filter(String::isNotBlank).map(::parseChecklistItem),
                                 time = time,
                                 dayHeader = dayHeader,
                             )
@@ -187,7 +194,7 @@ class NoteDetailChangeColorHandler(
     override suspend fun handleCommand(command: NoteDetailCommand.ChangeNoteColor): Flow<NoteDetailEvent> =
         flow {
             val note = repository.getById(command.noteId) ?: return@flow
-            repository.update(note.copy(color = command.color.toNoteColor()))
+            repository.update(note.copy(color = command.color.serialize()))
             emit(NoteDetailEvent.NoteColorChanged)
         }
 }
@@ -231,24 +238,11 @@ class NoteDetailDeleteNoteHandler(
         }
 }
 
-private fun NoteCardColor.toNoteColor() = when (this) {
-    NoteCardColor.Purple -> NoteColor.Purple
-    NoteCardColor.Pink -> NoteColor.Pink
-    NoteCardColor.Green -> NoteColor.Green
-    NoteCardColor.Orange -> NoteColor.Orange
-}
 
 private fun String.decryptIfEncoded(pin: String?): String {
     if (pin == null) return this
     val enc = decodeEncryptedData() ?: return this
     return NoteEncryptor.decrypt(enc.ciphertext, enc.iv, enc.salt, pin) ?: this
-}
-
-private fun NoteColor.toCardColor() = when (this) {
-    NoteColor.Purple -> NoteCardColor.Purple
-    NoteColor.Pink -> NoteCardColor.Pink
-    NoteColor.Green -> NoteCardColor.Green
-    NoteColor.Orange -> NoteCardColor.Orange
 }
 
 private fun Long.toTime(zone: TimeZone): String {

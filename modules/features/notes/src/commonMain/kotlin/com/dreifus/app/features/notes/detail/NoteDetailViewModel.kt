@@ -3,6 +3,7 @@ package com.dreifus.app.features.notes.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dreifus.app.data.notes.NotesRepository
+import com.dreifus.app.data.preferences.FavoriteColorsPreferences
 import com.dreifus.app.features.notes.navigation.PinNavigation
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailCommand
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEffect
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesIntoMap(AppScope::class)
 class NoteDetailViewModel(
     repository: NotesRepository,
+    favoriteColorsPreferences: FavoriteColorsPreferences,
     val pinNavigation: PinNavigation,
 ) : ViewModel() {
 
@@ -40,7 +42,7 @@ class NoteDetailViewModel(
         initialState = NoteDetailState(),
         update = NoteDetailUpdate,
         commandHandlers = listOf(
-            NoteDetailInitHandler(repository),
+            NoteDetailInitHandler(repository, favoriteColorsPreferences),
             NoteDetailInsertBlockHandler(repository),
             NoteDetailInsertPhotoBlockHandler(repository),
             NoteDetailInsertChecklistBlockHandler(repository),

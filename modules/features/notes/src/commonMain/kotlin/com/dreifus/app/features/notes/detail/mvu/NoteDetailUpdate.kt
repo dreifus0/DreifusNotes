@@ -25,9 +25,20 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
             command = NoteDetailCommand.DeleteBlock(event.blockId),
         )
         is NoteDetailEvent.Ui.CopyBlockClick -> {
-            val text = state.blocks.find { it.id == event.blockId }?.copyText()
-            if (text != null) Next(state = state, effect = NoteDetailEffect.CopyToClipboard(text))
-            else Next(state = state)
+            val block = state.blocks.find { it.id == event.blockId }
+            when {
+                block is NoteBlockUiItem.Photo -> Next(state = state, effect = NoteDetailEffect.CopyImage(block.uri))
+                block != null -> Next(state = state, effect = NoteDetailEffect.CopyToClipboard(block.copyText().orEmpty()))
+                else -> Next(state = state)
+            }
+        }
+        is NoteDetailEvent.Ui.ShareBlockClick -> {
+            val block = state.blocks.find { it.id == event.blockId }
+            when {
+                block is NoteBlockUiItem.Photo -> Next(state = state, effect = NoteDetailEffect.ShareImage(block.uri))
+                block != null -> Next(state = state, effect = NoteDetailEffect.ShareNote(block.copyText().orEmpty()))
+                else -> Next(state = state)
+            }
         }
         is NoteDetailEvent.Ui.EditBlockConfirmed -> Next(
             state = state,
@@ -64,6 +75,21 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
             state = state,
             command = NoteDetailCommand.InsertChecklistBlock(state.noteId, event.title, event.items, state.unlockedPin),
         )
+        is NoteDetailEvent.Ui.ChecklistItemToggled -> {
+            val block = state.blocks.find { it.id == event.blockId } as? NoteBlockUiItem.Checklist
+            if (block == null || event.itemIndex !in block.items.indices) Next(state) else {
+                val toggled = block.copy(
+                    items = block.items.mapIndexed { index, item ->
+                        if (index == event.itemIndex) item.copy(isChecked = !item.isChecked) else item
+                    },
+                )
+                Next(
+                    // Optimistic update for an instant checkbox; the blocks flow re-emits after save.
+                    state = state.copy(blocks = state.blocks.map { if (it.id == block.id) toggled else it }),
+                    command = NoteDetailCommand.UpdateBlock(block.id, toggled.encodeToBlockText(), state.unlockedPin),
+                )
+            }
+        }
         is NoteDetailEvent.NoteLoaded -> Next(
             state = state.copy(
                 title = event.title,
@@ -76,6 +102,9 @@ val NoteDetailUpdate = Update<NoteDetailState, NoteDetailEvent, NoteDetailComman
         )
         is NoteDetailEvent.BlocksLoaded -> Next(
             state = state.copy(blocks = event.blocks, isBlocksLoading = false),
+        )
+        is NoteDetailEvent.FavoriteColorsLoaded -> Next(
+            state = state.copy(favoriteColors = event.colors),
         )
         NoteDetailEvent.BlockSent -> Next(state = state)
         NoteDetailEvent.BlockDeleted -> Next(state = state)
@@ -116,7 +145,7 @@ private fun buildShareText(state: NoteDetailState): String = buildString {
             is NoteBlockUiItem.Text -> appendLine(block.text)
             is NoteBlockUiItem.Checklist -> {
                 if (block.title.isNotBlank()) appendLine(block.title)
-                block.items.forEach { appendLine("• $it") }
+                block.items.forEach { appendLine("${if (it.isChecked) "✓" else "•"} ${it.text}") }
             }
             is NoteBlockUiItem.Photo -> Unit
         }
@@ -128,7 +157,7 @@ private fun NoteBlockUiItem.copyText(): String? = when (this) {
     is NoteBlockUiItem.Text -> text
     is NoteBlockUiItem.Checklist -> buildString {
         if (title.isNotBlank()) appendLine(title)
-        items.forEach(::appendLine)
+        items.forEach { appendLine("${if (it.isChecked) "✓" else "•"} ${it.text}") }
     }.trimEnd()
     is NoteBlockUiItem.Photo -> null
 }

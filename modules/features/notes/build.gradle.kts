@@ -20,6 +20,7 @@ kotlin {
             implementation(projects.modules.utils.coreNavigation)
             implementation(projects.modules.utils.permissions)
             implementation(projects.modules.data.notes)
+            implementation(projects.modules.data.preferences)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

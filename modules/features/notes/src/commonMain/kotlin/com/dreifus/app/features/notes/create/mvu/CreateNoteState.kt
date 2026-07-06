@@ -7,6 +7,7 @@ import com.dreifus.template.uikit.style.NoteCardColor
 data class CreateNoteState(
     val title: String = "",
     val description: String = "",
-    val selectedColor: NoteCardColor = NoteCardColor.Purple,
+    val availableColors: List<NoteCardColor> = NoteCardColor.DefaultFavorites,
+    val selectedColor: NoteCardColor = NoteCardColor.Default,
     val isCreating: Boolean = false,
 )

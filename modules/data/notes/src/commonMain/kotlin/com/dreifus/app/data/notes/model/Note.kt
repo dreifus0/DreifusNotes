@@ -4,7 +4,8 @@ data class Note(
     val id: Long,
     val title: String,
     val description: String,
-    val color: NoteColor,
+    /** Serialized note color: an ARGB hex string, or a legacy palette name for old rows. */
+    val color: String,
     val isProtected: Boolean,
     val pin: String,
     val encryptedBody: ByteArray?,
@@ -21,5 +22,3 @@ data class Note(
 
     override fun hashCode(): Int = id.hashCode()
 }
-
-enum class NoteColor { Purple, Pink, Green, Orange }

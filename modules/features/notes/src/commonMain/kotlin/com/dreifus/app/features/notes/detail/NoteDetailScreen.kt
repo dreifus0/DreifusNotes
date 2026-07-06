@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +62,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,6 +71,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import com.dreifus.permissions.AppPermission
 import com.dreifus.permissions.rememberPermissionRequester
+import com.dreifus.app.features.notes.detail.mvu.ChecklistItemUi
 import com.dreifus.app.features.notes.detail.mvu.NoteBlockUiItem
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEffect
 import com.dreifus.app.features.notes.detail.mvu.NoteDetailEvent
@@ -76,7 +79,6 @@ import com.dreifus.app.features.notes.detail.mvu.NoteDetailState
 import com.dreifus.navigation.controller.Navigation
 import com.dreifus.navigation.screen.regular.RegularScreen
 import com.dreifus.template.uikit.icon.ArrowLeft24
-import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.GlassIcon
 import com.dreifus.template.uikit.icon.Lock24
 import com.dreifus.template.uikit.icon.LockOpen24
@@ -103,6 +105,7 @@ import dreifusnotes.modules.features.notes.generated.resources.note_block_edit
 import dreifusnotes.modules.features.notes.generated.resources.note_block_edit_cancel
 import dreifusnotes.modules.features.notes.generated.resources.note_block_edit_save
 import dreifusnotes.modules.features.notes.generated.resources.note_block_edit_title
+import dreifusnotes.modules.features.notes.generated.resources.note_block_share
 import dreifusnotes.modules.features.notes.generated.resources.note_detail_add_checklist
 import dreifusnotes.modules.features.notes.generated.resources.note_detail_add_photo
 import dreifusnotes.modules.features.notes.generated.resources.note_detail_delete
@@ -145,6 +148,8 @@ class NoteDetailScreen(
         val permissionRequester = rememberPermissionRequester()
         val clipboardManager = LocalClipboardManager.current
         val shareLauncher = rememberShareLauncher()
+        val shareImageLauncher = rememberShareImageLauncher()
+        val copyImageLauncher = rememberCopyImageLauncher()
 
         LaunchedEffect(Unit) {
             vm.dispatch(NoteDetailEvent.Ui.Init(noteId, unlockedPin))
@@ -166,6 +171,8 @@ class NoteDetailScreen(
                     )
                     is NoteDetailEffect.CopyToClipboard -> clipboardManager.setText(AnnotatedString(effect.text))
                     is NoteDetailEffect.ShareNote -> shareLauncher(effect.text)
+                    is NoteDetailEffect.ShareImage -> shareImageLauncher(effect.uri)
+                    is NoteDetailEffect.CopyImage -> copyImageLauncher(effect.uri)
                 }
             }
         }
@@ -274,8 +281,16 @@ private fun NoteDetailContent(
                 }
             }
 
+            // The top of the list area in window coordinates — the block context menu must not
+            // rise above it (i.e. under the toolbar).
+            var listTop by remember { mutableStateOf(0) }
             LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coords ->
+                        listTop = coords.positionInWindow().y.roundToInt()
+                    },
                 state = listState,
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -285,6 +300,7 @@ private fun NoteDetailContent(
                         block = block,
                         onEvent = onEvent,
                         onImageLoaded = { imageLoadedTick++ },
+                        menuMinY = listTop,
                     )
                 }
             }
@@ -426,26 +442,31 @@ private fun NoteDetailContent(
                 )
             },
             text = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    NoteCardColor.entries.forEach { color ->
-                        val colorPalette = color.palette()
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(colorPalette.background, CircleShape)
-                                .then(
-                                    if (color == state.color) {
-                                        Modifier.border(2.dp, AppTheme.colors.contentPrimary, CircleShape)
-                                    } else Modifier
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Favorites plus the note's current color, in case it's no longer a favorite.
+                    (state.favoriteColors + state.color).distinct().chunked(5).forEach { rowColors ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            rowColors.forEach { color ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        // The raw seed, theme-independent — same as the pickers.
+                                        .background(color.seed, CircleShape)
+                                        .then(
+                                            if (color == state.color) {
+                                                Modifier.border(2.dp, AppTheme.colors.contentPrimary, CircleShape)
+                                            } else Modifier
+                                        )
+                                        .clickable {
+                                            showColorDialog = false
+                                            onEvent(NoteDetailEvent.Ui.ColorChangeConfirmed(color))
+                                        },
                                 )
-                                .clickable {
-                                    showColorDialog = false
-                                    onEvent(NoteDetailEvent.Ui.ColorChangeConfirmed(color))
-                                },
-                        )
+                            }
+                        }
                     }
                 }
             },
@@ -572,6 +593,7 @@ private fun BlockItemWithHeader(
     block: NoteBlockUiItem,
     onEvent: (NoteDetailEvent.Ui) -> Unit,
     onImageLoaded: () -> Unit = {},
+    menuMinY: Int = 0,
 ) {
     Column {
         if (block.dayHeader != null) {
@@ -588,19 +610,23 @@ private fun BlockItemWithHeader(
         BlockShell(
             time = block.time,
             onDelete = { onEvent(NoteDetailEvent.Ui.DeleteBlockClick(block.id)) },
-            onCopy = when (block) {
-                is NoteBlockUiItem.Photo -> null
-                else -> { { onEvent(NoteDetailEvent.Ui.CopyBlockClick(block.id)) } }
-            },
+            onCopy = { onEvent(NoteDetailEvent.Ui.CopyBlockClick(block.id)) },
+            onShare = { onEvent(NoteDetailEvent.Ui.ShareBlockClick(block.id)) },
             initialEditText = (block as? NoteBlockUiItem.Text)?.text,
             onEditConfirm = if (block is NoteBlockUiItem.Text) {
                 { newText -> onEvent(NoteDetailEvent.Ui.EditBlockConfirmed(block.id, newText)) }
             } else null,
+            menuMinY = menuMinY,
         ) {
             when (block) {
                 is NoteBlockUiItem.Text -> TextBlockContent(block)
                 is NoteBlockUiItem.Photo -> PhotoBlockContent(block.uri, onImageLoaded)
-                is NoteBlockUiItem.Checklist -> ChecklistBlockContent(block)
+                is NoteBlockUiItem.Checklist -> ChecklistBlockContent(
+                    block = block,
+                    onToggleItem = { index ->
+                        onEvent(NoteDetailEvent.Ui.ChecklistItemToggled(block.id, index))
+                    },
+                )
             }
         }
     }
@@ -615,8 +641,10 @@ private fun BlockShell(
     time: String,
     onDelete: () -> Unit,
     onCopy: (() -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
     initialEditText: String? = null,
     onEditConfirm: ((String) -> Unit)? = null,
+    menuMinY: Int = 0,
     content: @Composable () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -634,12 +662,14 @@ private fun BlockShell(
                     anchorPosition = IntOffset(pos.x.roundToInt(), pos.y.roundToInt())
                     anchorSize = coords.size
                 }
-                .clickable { showMenu = true },
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                ) { showMenu = true },
         ) {
             Box(
                 modifier = Modifier
                     .background(AppTheme.colors.bgCardPrimary, blockShape)
-                    .glassBorder(shape = blockShape)
                     .padding(16.dp),
             ) {
                 content()
@@ -659,11 +689,20 @@ private fun BlockShell(
             anchorPosition = anchorPosition,
             anchorSize = anchorSize,
             alignEnd = true,
+            // Above the block; a tall photo block may have no room above (top under the toolbar
+            // or off-screen), then the menu overlays the block's visible top instead.
+            minY = menuMinY,
+            fallbackToAnchorTop = true,
             onDismissRequest = { showMenu = false },
             items = buildList {
                 if (onCopy != null) add(ContextMenuItem(
                     label = stringResource(Res.string.note_block_copy),
                     onClick = { showMenu = false; onCopy() },
+                ))
+                if (onShare != null) add(ContextMenuItem(
+                    label = stringResource(Res.string.note_block_share),
+                    icon = AppIcons.Send24,
+                    onClick = { showMenu = false; onShare() },
                 ))
                 if (initialEditText != null) add(ContextMenuItem(
                     label = stringResource(Res.string.note_block_edit),
@@ -754,7 +793,10 @@ private fun PhotoBlockContent(uri: String, onImageLoaded: () -> Unit = {}) {
 }
 
 @Composable
-private fun ChecklistBlockContent(block: NoteBlockUiItem.Checklist) {
+private fun ChecklistBlockContent(
+    block: NoteBlockUiItem.Checklist,
+    onToggleItem: (Int) -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (block.title.isNotBlank()) {
             Text(
@@ -763,16 +805,20 @@ private fun ChecklistBlockContent(block: NoteBlockUiItem.Checklist) {
                 color = AppTheme.colors.contentPrimary,
             )
         }
-        block.items.forEach { item ->
+        block.items.forEachIndexed { index, item ->
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggleItem(index) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                CheckboxDot()
+                CheckboxDot(checked = item.isChecked)
                 Text(
-                    text = item,
+                    text = item.text,
                     style = AppTheme.typography.bodyLarge,
-                    color = AppTheme.colors.contentPrimary,
+                    color = if (item.isChecked) AppTheme.colors.contentTertiary else AppTheme.colors.contentPrimary,
+                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else null,
                 )
             }
         }
@@ -915,7 +961,11 @@ private fun PreviewNoteDetail() {
                     NoteBlockUiItem.Checklist(
                         id = 2,
                         title = "Core features",
-                        items = listOf("List of notes", "Create note", "Delete note"),
+                        items = listOf(
+                            ChecklistItemUi("List of notes", isChecked = true),
+                            ChecklistItemUi("Create note"),
+                            ChecklistItemUi("Delete note"),
+                        ),
                         time = "09:15",
                         dayHeader = null,
                     ),

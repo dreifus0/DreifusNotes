@@ -117,16 +117,20 @@ private fun CreateNoteContent(
                     style = AppTheme.typography.headlineSmall,
                     color = AppTheme.colors.contentSecondary,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    NoteCardColor.entries.forEach { color ->
-                        ColorDot(
-                            color = color,
-                            isSelected = state.selectedColor == color,
-                            onClick = { onEvent(CreateNoteEvent.Ui.ColorSelected(color)) },
-                        )
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    state.availableColors.chunked(5).forEach { rowColors ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            rowColors.forEach { color ->
+                                ColorDot(
+                                    color = color,
+                                    isSelected = state.selectedColor == color,
+                                    onClick = { onEvent(CreateNoteEvent.Ui.ColorSelected(color)) },
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -151,7 +155,8 @@ private fun ColorDot(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    val palette = color.palette()
+    // The raw seed, not the theme-adapted palette background, so dots look the same
+    // as on the favorite colors screen regardless of light/dark theme.
     Box(
         modifier = Modifier
             .size(36.dp)
@@ -161,7 +166,7 @@ private fun ColorDot(
             )
             .padding(if (isSelected) 4.dp else 0.dp)
             .clip(CircleShape)
-            .background(palette.background)
+            .background(color.seed)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },

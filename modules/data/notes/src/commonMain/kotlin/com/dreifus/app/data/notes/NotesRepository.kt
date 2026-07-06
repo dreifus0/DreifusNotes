@@ -9,7 +9,6 @@ import com.dreifus.app.data.notes.db.NotesDatabase
 import com.dreifus.app.data.notes.model.Note
 import com.dreifus.app.data.notes.model.NoteBlock
 import com.dreifus.app.data.notes.model.NoteBlockType
-import com.dreifus.app.data.notes.model.NoteColor
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -56,7 +55,7 @@ class NotesRepository(
     suspend fun insert(
         title: String,
         description: String,
-        color: NoteColor,
+        color: String,
         isProtected: Boolean,
         encryptedBody: ByteArray?,
         iv: ByteArray?,
@@ -66,7 +65,7 @@ class NotesRepository(
         noteQueries.insert(
             title = title,
             description = description,
-            color = color.name,
+            color = color,
             is_protected = if (isProtected) 1L else 0L,
             encrypted_body = encryptedBody,
             iv = iv,
@@ -80,7 +79,7 @@ class NotesRepository(
         noteQueries.update(
             title = note.title,
             description = note.description,
-            color = note.color.name,
+            color = note.color,
             is_protected = if (note.isProtected) 1L else 0L,
             encrypted_body = note.encryptedBody,
             iv = note.iv,
@@ -172,7 +171,7 @@ class NotesRepository(
             noteQueries.update(
                 title = note.title,
                 description = decryptedDescription,
-                color = note.color.name,
+                color = note.color,
                 is_protected = 0L,
                 encrypted_body = null,
                 iv = null,
@@ -214,7 +213,7 @@ private fun NoteEntity.toDomain() = Note(
     id = id,
     title = title,
     description = description,
-    color = runCatching { NoteColor.valueOf(color) }.getOrDefault(NoteColor.Purple),
+    color = color,
     isProtected = is_protected != 0L,
     pin = pin,
     encryptedBody = encrypted_body,

@@ -1,6 +1,7 @@
 package com.dreifus.app.di
 
 import com.dreifus.app.data.notes.db.DatabaseDriverFactory
+import com.dreifus.app.data.preferences.FavoriteColorsPreferences
 import com.dreifus.app.data.preferences.ThemePreferences
 import com.dreifus.navigation.controller.NavControllersHolder
 import dev.zacsweers.metro.AppScope
@@ -17,6 +18,7 @@ interface AppGraph : ViewModelGraph {
             @Provides driverFactory: DatabaseDriverFactory,
             @Provides navControllersHolder: NavControllersHolder,
             @Provides themePreferences: ThemePreferences,
+            @Provides favoriteColorsPreferences: FavoriteColorsPreferences,
         ): AppGraph
     }
 }

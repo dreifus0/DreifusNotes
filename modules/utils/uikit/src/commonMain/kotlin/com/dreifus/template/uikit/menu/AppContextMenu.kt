@@ -100,6 +100,12 @@ private fun ContextMenuRow(item: ContextMenuItem) {
     }
 }
 
+/**
+ * [minY] — the topmost y the menu may occupy (e.g. the bottom of a toolbar), so "no room above"
+ * is judged against the content area rather than the window.
+ * [fallbackToAnchorTop] — when there is no room above the anchor, overlay the menu at the anchor's
+ * visible top instead of below its bottom; suits tall anchors like content blocks.
+ */
 @Composable
 fun ContextMenuPopup(
     anchorPosition: IntOffset,
@@ -107,10 +113,12 @@ fun ContextMenuPopup(
     alignEnd: Boolean,
     onDismissRequest: () -> Unit,
     items: List<ContextMenuItem>,
+    minY: Int = 0,
+    fallbackToAnchorTop: Boolean = false,
 ) {
     val density = LocalDensity.current
     val gapPx = with(density) { 12.dp.roundToPx() }
-    val positionProvider = remember(anchorPosition, anchorSize, alignEnd, gapPx) {
+    val positionProvider = remember(anchorPosition, anchorSize, alignEnd, gapPx, minY, fallbackToAnchorTop) {
         object : PopupPositionProvider {
             override fun calculatePosition(
                 anchorBounds: IntRect,
@@ -124,7 +132,11 @@ fun ContextMenuPopup(
                     anchorPosition.x.coerceAtMost(windowSize.width - popupContentSize.width)
                 }
                 val yAbove = anchorPosition.y - popupContentSize.height - gapPx
-                val y = if (yAbove >= 0) yAbove else anchorPosition.y + anchorSize.height + gapPx
+                val y = when {
+                    yAbove >= minY -> yAbove
+                    fallbackToAnchorTop -> anchorPosition.y.coerceAtLeast(minY) + gapPx
+                    else -> anchorPosition.y + anchorSize.height + gapPx
+                }.coerceIn(0, (windowSize.height - popupContentSize.height).coerceAtLeast(0))
                 return IntOffset(x, y)
             }
         }

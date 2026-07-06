@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dreifus.app.data.preferences.ThemeMode
 import com.dreifus.app.features.settings.appearance.AppearanceScreen
+import com.dreifus.app.features.settings.colors.NoteColorsScreen
 import com.dreifus.app.features.settings.biometric.BiometricAuthEffect
 import com.dreifus.app.features.settings.main.mvu.SettingsEffect
 import com.dreifus.app.features.settings.main.mvu.SettingsEvent
@@ -43,6 +44,7 @@ import com.dreifus.navigation.ui.RootScreenWithTabs
 import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.ChevronRight24
 import com.dreifus.template.uikit.icon.Lock24
+import com.dreifus.template.uikit.icon.Palette24
 import com.dreifus.template.uikit.icon.Theme24
 import com.dreifus.template.uikit.icon.Trash24
 import com.dreifus.template.uikit.preview.AppPreview
@@ -55,6 +57,8 @@ import dreifusnotes.modules.features.settings.generated.resources.appearance_dar
 import dreifusnotes.modules.features.settings.generated.resources.appearance_light
 import dreifusnotes.modules.features.settings.generated.resources.appearance_system
 import dreifusnotes.modules.features.settings.generated.resources.settings_appearance
+import dreifusnotes.modules.features.settings.generated.resources.settings_note_colors
+import dreifusnotes.modules.features.settings.generated.resources.settings_note_colors_subtitle
 import dreifusnotes.modules.features.settings.generated.resources.settings_biometric_subtitle
 import dreifusnotes.modules.features.settings.generated.resources.settings_biometric_title
 import dreifusnotes.modules.features.settings.generated.resources.settings_privacy_policy
@@ -91,6 +95,7 @@ class SettingsScreen : RootScreenWithTabs {
                 when (effect) {
                     SettingsEffect.DataReset -> Unit
                     SettingsEffect.NavigateToAppearance -> regularNav.navigate(AppearanceScreen())
+                    SettingsEffect.NavigateToNoteColors -> regularNav.navigate(NoteColorsScreen())
                     is SettingsEffect.OpenUrl -> uriHandler.openUri(effect.url)
                 }
             }
@@ -146,8 +151,16 @@ private fun SettingsContent(
                         subtitle = themeModeLabel(state.themeMode),
                         iconBackground = Color(0xFF9FE1CB),
                         icon = { AppIcons.Theme24(tint = Color(0xFF04342C)) },
-                        showDivider = false,
                         onClick = { onEvent(SettingsEvent.Ui.AppearanceClick) },
+                        trailing = { AppIcons.ChevronRight24(tint = AppTheme.colors.contentTertiary) },
+                    )
+                    SettingsRow(
+                        label = stringResource(Res.string.settings_note_colors),
+                        subtitle = stringResource(Res.string.settings_note_colors_subtitle),
+                        iconBackground = Color(0xFFCECBF6),
+                        icon = { AppIcons.Palette24(tint = Color(0xFF26215C)) },
+                        showDivider = false,
+                        onClick = { onEvent(SettingsEvent.Ui.NoteColorsClick) },
                         trailing = { AppIcons.ChevronRight24(tint = AppTheme.colors.contentTertiary) },
                     )
                 }

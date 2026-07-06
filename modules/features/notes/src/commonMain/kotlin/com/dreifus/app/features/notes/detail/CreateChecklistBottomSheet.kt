@@ -1,5 +1,6 @@
 package com.dreifus.app.features.notes.detail
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -162,12 +167,40 @@ private fun CreateChecklistContent(onConfirm: (title: String, items: List<String
 }
 
 @Composable
-internal fun CheckboxDot() {
-    Box(
-        modifier = Modifier
-            .size(18.dp)
-            .border(1.5.dp, AppTheme.colors.contentTertiary, RoundedCornerShape(4.dp)),
-    )
+internal fun CheckboxDot(checked: Boolean = false) {
+    val shape = RoundedCornerShape(4.dp)
+    if (checked) {
+        val checkColor = AppTheme.colors.accentOnPrimary
+        Box(
+            modifier = Modifier
+                .size(18.dp)
+                .background(AppTheme.colors.accentPrimary, shape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(modifier = Modifier.size(10.dp)) {
+                val path = Path().apply {
+                    moveTo(size.width * 0.05f, size.height * 0.55f)
+                    lineTo(size.width * 0.4f, size.height * 0.9f)
+                    lineTo(size.width * 0.95f, size.height * 0.15f)
+                }
+                drawPath(
+                    path = path,
+                    color = checkColor,
+                    style = Stroke(
+                        width = 1.8.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    ),
+                )
+            }
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .size(18.dp)
+                .border(1.5.dp, AppTheme.colors.contentTertiary, shape),
+        )
+    }
 }
 
 @Preview

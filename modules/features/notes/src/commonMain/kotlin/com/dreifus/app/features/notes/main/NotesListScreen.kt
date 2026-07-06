@@ -41,6 +41,7 @@ import com.dreifus.template.uikit.button.AppButton
 import com.dreifus.template.uikit.card.AppCard
 import com.dreifus.template.uikit.icon.GlassIcon
 import com.dreifus.template.uikit.icon.Plus24
+import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.Search24
 import com.dreifus.template.uikit.preview.AppPreview
 import com.dreifus.template.uikit.style.AppIcons
@@ -111,6 +112,8 @@ private fun NotesListContent(
             AppTextField(
                 value = state.query,
                 onValueChange = { onEvent(NotesListEvent.Ui.QueryChanged(it)) },
+                // Shape mirrors the field's own rounding so the glass border hugs it.
+                modifier = Modifier.glassBorder(shape = RoundedCornerShape(64.dp)),
                 labelText = stringResource(Res.string.notes_search_placeholder),
                 leadingIcon = AppIcons.Search24,
                 imeAction = ImeAction.Search,

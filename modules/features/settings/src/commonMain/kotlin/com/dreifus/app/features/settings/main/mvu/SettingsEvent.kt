@@ -6,6 +6,7 @@ sealed interface SettingsEvent {
     sealed interface Ui : SettingsEvent {
         data object Init : Ui
         data object AppearanceClick : Ui
+        data object NoteColorsClick : Ui
         data object ResetDataClick : Ui
         data object PrivacyPolicyClick : Ui
         data object BiometricSuccess : Ui
