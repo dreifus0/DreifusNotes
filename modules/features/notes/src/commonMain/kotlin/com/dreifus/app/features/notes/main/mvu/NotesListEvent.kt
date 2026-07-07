@@ -5,6 +5,8 @@ sealed interface NotesListEvent {
         data class QueryChanged(val query: String) : Ui
         data object AddClick : Ui
         data class NoteClick(val id: Long) : Ui
+        data class NoteMoved(val fromIndex: Int, val toIndex: Int) : Ui
+        data object NoteDragEnded : Ui
     }
     data class NotesLoaded(val notes: List<NoteUiItem>) : NotesListEvent
 }

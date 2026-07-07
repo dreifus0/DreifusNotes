@@ -13,22 +13,16 @@ data class NoteCardPalette(
 )
 
 /**
- * A note's accent color, seeded by a single [seed] color. The eight built-in presets keep their
- * hand-tuned light/dark palettes; any other (user-picked) seed gets a palette derived from its hue.
+ * A note's accent color, seeded by a single [seed] color. The palette is theme-independent: the
+ * card background is always the picked [seed], so cards match the color pickers in both themes.
+ * The eight built-in presets keep their hand-tuned text colors; any other (user-picked) seed gets
+ * text colors derived from its hue.
  */
 @Immutable
 data class NoteCardColor(val seed: Color) {
 
     @Composable
-    fun palette(): NoteCardPalette {
-        val isDark = AppTheme.colors.isDarkTheme
-        val preset = presetPalettes[seed]
-        return when {
-            preset != null -> if (isDark) preset.dark else preset.light
-            isDark -> derivedDarkPalette(seed)
-            else -> derivedLightPalette(seed)
-        }
-    }
+    fun palette(): NoteCardPalette = presetPalettes[seed] ?: derivedPalette(seed)
 
     /** Stored form: ARGB hex, e.g. `#FFCECBF6`. */
     fun serialize(): String = "#" + seed.toArgbLong().toString(16).padStart(8, '0').uppercase()
@@ -82,11 +76,9 @@ private fun Color.toArgbLong(): Long {
     return (channel(alpha) shl 24) or (channel(red) shl 16) or (channel(green) shl 8) or channel(blue)
 }
 
-private class PresetPalette(val light: NoteCardPalette, val dark: NoteCardPalette)
-
 // region Derived palettes for user-picked colors
 
-private fun derivedLightPalette(seed: Color): NoteCardPalette {
+private fun derivedPalette(seed: Color): NoteCardPalette {
     val (h, s, l) = seed.toHsl()
     val textSat = (s * 0.9f).coerceIn(0.25f, 0.85f)
     return if (l > 0.5f) {
@@ -104,17 +96,6 @@ private fun derivedLightPalette(seed: Color): NoteCardPalette {
             date = Color.hsl(h, (s * 0.7f).coerceAtMost(0.9f), 0.74f),
         )
     }
-}
-
-private fun derivedDarkPalette(seed: Color): NoteCardPalette {
-    val (h, s, _) = seed.toHsl()
-    val bgSat = (s * 0.85f).coerceIn(0.2f, 0.7f)
-    return NoteCardPalette(
-        background = Color.hsl(h, bgSat, 0.30f),
-        title = Color.hsl(h, (s * 0.6f).coerceAtMost(0.9f), 0.94f),
-        body = Color.hsl(h, (s * 0.75f).coerceAtMost(0.9f), 0.72f),
-        date = Color.hsl(h, (s * 0.75f).coerceAtMost(0.9f), 0.72f),
-    )
 }
 
 /** RGB → HSL; hue in degrees [0, 360), saturation and lightness in [0, 1]. */
@@ -137,118 +118,54 @@ private fun Color.toHsl(): Triple<Float, Float, Float> {
 
 // region Hand-tuned preset palettes
 
-private val presetPalettes: Map<Color, PresetPalette> = mapOf(
-    NoteCardColor.Purple.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFFCECBF6),
-            title = Color(0xFF26215C),
-            body = Color(0xFF3C3489),
-            date = Color(0xFF534AB7),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF3C3489),
-            title = Color(0xFFEEEDFE),
-            body = Color(0xFFAFA9EC),
-            date = Color(0xFFAFA9EC),
-        ),
+private val presetPalettes: Map<Color, NoteCardPalette> = mapOf(
+    NoteCardColor.Purple.seed to NoteCardPalette(
+        background = Color(0xFFCECBF6),
+        title = Color(0xFF26215C),
+        body = Color(0xFF3C3489),
+        date = Color(0xFF534AB7),
     ),
-    NoteCardColor.Pink.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFFF4C0D1),
-            title = Color(0xFF4B1528),
-            body = Color(0xFF993556),
-            date = Color(0xFF993556),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF72243E),
-            title = Color(0xFFFBEAF0),
-            body = Color(0xFFED93B1),
-            date = Color(0xFFED93B1),
-        ),
+    NoteCardColor.Pink.seed to NoteCardPalette(
+        background = Color(0xFFF4C0D1),
+        title = Color(0xFF4B1528),
+        body = Color(0xFF993556),
+        date = Color(0xFF993556),
     ),
-    NoteCardColor.Green.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFF9FE1CB),
-            title = Color(0xFF04342C),
-            body = Color(0xFF085041),
-            date = Color(0xFF0F6E56),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF085041),
-            title = Color(0xFFE1F5EE),
-            body = Color(0xFF5DCAA5),
-            date = Color(0xFF5DCAA5),
-        ),
+    NoteCardColor.Green.seed to NoteCardPalette(
+        background = Color(0xFF9FE1CB),
+        title = Color(0xFF04342C),
+        body = Color(0xFF085041),
+        date = Color(0xFF0F6E56),
     ),
-    NoteCardColor.Orange.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFFFAC775),
-            title = Color(0xFF412402),
-            body = Color(0xFF633806),
-            date = Color(0xFF854F0B),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF633806),
-            title = Color(0xFFFAEEDA),
-            body = Color(0xFFEF9F27),
-            date = Color(0xFFEF9F27),
-        ),
+    NoteCardColor.Orange.seed to NoteCardPalette(
+        background = Color(0xFFFAC775),
+        title = Color(0xFF412402),
+        body = Color(0xFF633806),
+        date = Color(0xFF854F0B),
     ),
-    NoteCardColor.Blue.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFFBBD6F6),
-            title = Color(0xFF122A4B),
-            body = Color(0xFF1F4479),
-            date = Color(0xFF2C5CA5),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF1F4479),
-            title = Color(0xFFE9F1FD),
-            body = Color(0xFF8FB8ED),
-            date = Color(0xFF8FB8ED),
-        ),
+    NoteCardColor.Blue.seed to NoteCardPalette(
+        background = Color(0xFFBBD6F6),
+        title = Color(0xFF122A4B),
+        body = Color(0xFF1F4479),
+        date = Color(0xFF2C5CA5),
     ),
-    NoteCardColor.Teal.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFFA8E3E0),
-            title = Color(0xFF063736),
-            body = Color(0xFF0B5654),
-            date = Color(0xFF117573),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF0B5654),
-            title = Color(0xFFE2F6F5),
-            body = Color(0xFF63CFCB),
-            date = Color(0xFF63CFCB),
-        ),
+    NoteCardColor.Teal.seed to NoteCardPalette(
+        background = Color(0xFFA8E3E0),
+        title = Color(0xFF063736),
+        body = Color(0xFF0B5654),
+        date = Color(0xFF117573),
     ),
-    NoteCardColor.Red.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFFF6BFB7),
-            title = Color(0xFF4A150E),
-            body = Color(0xFF8E2F23),
-            date = Color(0xFF8E2F23),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF6E241A),
-            title = Color(0xFFFBECEA),
-            body = Color(0xFFEC948A),
-            date = Color(0xFFEC948A),
-        ),
+    NoteCardColor.Red.seed to NoteCardPalette(
+        background = Color(0xFFF6BFB7),
+        title = Color(0xFF4A150E),
+        body = Color(0xFF8E2F23),
+        date = Color(0xFF8E2F23),
     ),
-    NoteCardColor.Yellow.seed to PresetPalette(
-        light = NoteCardPalette(
-            background = Color(0xFFEDE28B),
-            title = Color(0xFF3A3403),
-            body = Color(0xFF5C5307),
-            date = Color(0xFF7A6E0C),
-        ),
-        dark = NoteCardPalette(
-            background = Color(0xFF5C5307),
-            title = Color(0xFFF7F3DC),
-            body = Color(0xFFD8CA45),
-            date = Color(0xFFD8CA45),
-        ),
+    NoteCardColor.Yellow.seed to NoteCardPalette(
+        background = Color(0xFFEDE28B),
+        title = Color(0xFF3A3403),
+        body = Color(0xFF5C5307),
+        date = Color(0xFF7A6E0C),
     ),
 )
 

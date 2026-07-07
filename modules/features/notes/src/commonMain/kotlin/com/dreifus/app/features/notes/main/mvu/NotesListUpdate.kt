@@ -23,5 +23,16 @@ val NotesListUpdate = Update<NotesListState, NotesListEvent, NotesListCommand, N
                 isProtected = state.notes.find { it.id == event.id }?.isProtected ?: false,
             ),
         )
+        is NotesListEvent.Ui.NoteMoved -> {
+            val notes = state.notes.toMutableList()
+            if (event.fromIndex in notes.indices && event.toIndex in notes.indices) {
+                notes.add(event.toIndex, notes.removeAt(event.fromIndex))
+            }
+            Next(state = state.copy(notes = notes))
+        }
+        is NotesListEvent.Ui.NoteDragEnded -> Next(
+            state = state,
+            command = NotesListCommand.PersistOrder(state.notes.map { it.id }),
+        )
     }
 }

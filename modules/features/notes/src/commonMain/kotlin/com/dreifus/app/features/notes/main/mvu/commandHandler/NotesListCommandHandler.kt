@@ -7,6 +7,7 @@ import com.dreifus.app.features.notes.main.mvu.NotesListEvent
 import com.dreifus.template.uikit.style.NoteCardColor
 import com.yavorcool.mvucore.FilteringHandlerToFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -41,6 +42,18 @@ class NotesListCommandHandler(
             })
         }
     }
+}
+
+class NotesListPersistOrderHandler(
+    private val repository: NotesRepository,
+) : FilteringHandlerToFlow<NotesListCommand.PersistOrder, NotesListCommand, NotesListEvent>(
+    NotesListCommand.PersistOrder::class,
+    cancelPreviousOnNewCommand = false,
+) {
+    override suspend fun handleCommand(command: NotesListCommand.PersistOrder): Flow<NotesListEvent> =
+        flow {
+            repository.updateOrder(command.orderedIds)
+        }
 }
 
 private fun Long.toDisplayDate(): String {

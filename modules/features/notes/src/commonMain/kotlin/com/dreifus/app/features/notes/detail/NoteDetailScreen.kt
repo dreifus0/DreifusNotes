@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -49,6 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
@@ -66,7 +68,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import com.dreifus.permissions.AppPermission
@@ -89,6 +96,8 @@ import com.dreifus.template.uikit.preview.AppPreview
 import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
 import com.dreifus.template.uikit.style.NoteCardColor
+import com.dreifus.template.uikit.effect.dissolveEffect
+import com.dreifus.template.uikit.text.linkified
 import com.dreifus.template.uikit.textField.AppTextField
 import com.dreifus.template.uikit.toolbar.AppToolbar
 import dev.zacsweers.metrox.viewmodel.metroViewModel
@@ -196,8 +205,24 @@ private fun NoteDetailContent(
     var showColorDialog by remember { mutableStateOf(false) }
     var showUnlockDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    // Bumped on taps that nothing else handled (empty areas); recreates the SelectionContainers
+    // of text blocks via key(), dropping any active text selection.
+    var selectionResetTick by remember { mutableStateOf(0) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    // Final pass: observe only — taps consumed by clickables, selection or
+                    // scrolling are left alone.
+                    val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Final)
+                    val downConsumed = down.isConsumed
+                    val up = waitForUpOrCancellation(pass = PointerEventPass.Final)
+                    if (!downConsumed && up != null && !up.isConsumed) selectionResetTick++
+                }
+            },
+    ) {
         AppToolbar(
             title = state.title,
             centerTitle = false,
@@ -301,6 +326,7 @@ private fun NoteDetailContent(
                         onEvent = onEvent,
                         onImageLoaded = { imageLoadedTick++ },
                         menuMinY = listTop,
+                        selectionResetKey = selectionResetTick,
                     )
                 }
             }
@@ -594,6 +620,7 @@ private fun BlockItemWithHeader(
     onEvent: (NoteDetailEvent.Ui) -> Unit,
     onImageLoaded: () -> Unit = {},
     menuMinY: Int = 0,
+    selectionResetKey: Int = 0,
 ) {
     Column {
         if (block.dayHeader != null) {
@@ -619,7 +646,7 @@ private fun BlockItemWithHeader(
             menuMinY = menuMinY,
         ) {
             when (block) {
-                is NoteBlockUiItem.Text -> TextBlockContent(block)
+                is NoteBlockUiItem.Text -> TextBlockContent(block, selectionResetKey)
                 is NoteBlockUiItem.Photo -> PhotoBlockContent(block.uri, onImageLoaded)
                 is NoteBlockUiItem.Checklist -> ChecklistBlockContent(
                     block = block,
@@ -652,11 +679,13 @@ private fun BlockShell(
     var editValue by remember { mutableStateOf("") }
     var anchorPosition by remember { mutableStateOf(IntOffset.Zero) }
     var anchorSize by remember { mutableStateOf(IntSize.Zero) }
+    var dissolving by remember { mutableStateOf(false) }
 
     Row(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.82f)
+                .dissolveEffect(active = dissolving, onFinished = onDelete)
                 .onGloballyPositioned { coords ->
                     val pos = coords.positionInWindow()
                     anchorPosition = IntOffset(pos.x.roundToInt(), pos.y.roundToInt())
@@ -665,7 +694,7 @@ private fun BlockShell(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                ) { showMenu = true },
+                ) { if (!dissolving) showMenu = true },
         ) {
             Box(
                 modifier = Modifier
@@ -713,7 +742,8 @@ private fun BlockShell(
                     label = stringResource(Res.string.note_detail_delete),
                     icon = AppIcons.Trash24,
                     isDestructive = true,
-                    onClick = { showMenu = false; onDelete() },
+                    // The block crumbles first; the actual delete fires when the animation ends.
+                    onClick = { showMenu = false; dissolving = true },
                 ))
             },
         )
@@ -761,12 +791,17 @@ private fun BlockShell(
 }
 
 @Composable
-private fun TextBlockContent(block: NoteBlockUiItem.Text) {
-    Text(
-        text = block.text,
-        style = AppTheme.typography.bodyLarge,
-        color = AppTheme.colors.contentPrimary,
-    )
+private fun TextBlockContent(block: NoteBlockUiItem.Text, selectionResetKey: Int = 0) {
+    // key() recreates the SelectionContainer when the reset tick changes, dropping the selection.
+    key(selectionResetKey) {
+        SelectionContainer {
+            Text(
+                text = block.text.linkified(),
+                style = AppTheme.typography.bodyLarge,
+                color = AppTheme.colors.contentPrimary,
+            )
+        }
+    }
 }
 
 @Composable
@@ -815,7 +850,7 @@ private fun ChecklistBlockContent(
             ) {
                 CheckboxDot(checked = item.isChecked)
                 Text(
-                    text = item.text,
+                    text = item.text.linkified(),
                     style = AppTheme.typography.bodyLarge,
                     color = if (item.isChecked) AppTheme.colors.contentTertiary else AppTheme.colors.contentPrimary,
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else null,
@@ -844,17 +879,21 @@ private fun BlockInputBar(
                 .background(AppTheme.colors.backgroundBase)
                 .padding(horizontal = 12.dp)
                 .padding(top = 8.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            // Bottom-aligned so the buttons stay by the field's bottom edge as it grows with
+            // multiline input; 4.dp visually centers 48.dp icons against the single-line height.
+            verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             GlassIcon(
                 icon = AppIcons.Plus24,
                 onClick = { showPlusMenu = true },
-                modifier = Modifier.onGloballyPositioned { coords ->
-                    val pos = coords.positionInWindow()
-                    plusPosition = IntOffset(pos.x.roundToInt(), pos.y.roundToInt())
-                    plusSize = coords.size
-                },
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .onGloballyPositioned { coords ->
+                        val pos = coords.positionInWindow()
+                        plusPosition = IntOffset(pos.x.roundToInt(), pos.y.roundToInt())
+                        plusSize = coords.size
+                    },
             )
             AppTextField(
                 value = text,
@@ -863,10 +902,13 @@ private fun BlockInputBar(
                 labelText = stringResource(Res.string.note_detail_input_placeholder),
                 imeAction = ImeAction.Send,
                 keyboardActions = KeyboardActions(onSend = { onSend() }),
+                singleLine = false,
+                maxLines = 5,
             )
             GlassIcon(
                 icon = AppIcons.Send24,
                 onClick = onSend,
+                modifier = Modifier.padding(bottom = 4.dp),
                 iconSize = 18.dp,
                 backgroundColor = AppTheme.colors.accentPrimary,
                 iconTint = AppTheme.colors.accentOnPrimary,

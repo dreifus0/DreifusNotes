@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -69,6 +70,8 @@ fun AppTextField(
     errorTestTag: String = "",
     isRequired: Boolean = false,
     autofillType: ContentType? = null,
+    singleLine: Boolean = true,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
 ) {
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
@@ -108,7 +111,7 @@ fun AppTextField(
                                 autofillType?.let { contentType = it }
                             }
                             .testTag(testTag)
-                            .height(height)
+                            .run { if (singleLine) height(height) else heightIn(min = height) }
                             .padding(horizontal = 6.dp)
                             .weight(1f),
                         leadingIcon = leadingIcon?.let { icon ->
@@ -131,7 +134,8 @@ fun AppTextField(
                             errorCursorColor = AppTheme.colors.inputTextError,
                         ),
                         shape = RoundedCornerShape(64.dp),
-                        singleLine = true,
+                        singleLine = singleLine,
+                        maxLines = maxLines,
                         textStyle = typography.bodyMedium,
                         label = {
                             Text(
@@ -211,6 +215,8 @@ fun AppTextField(
     initialSelection: TextRange = TextRange.Zero,
     isRequired: Boolean = false,
     autofillType: ContentType? = null,
+    singleLine: Boolean = true,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
 ) {
     // Holds the latest internal TextFieldValue state. We need to keep it to have the correct value
     // of the composition.
@@ -264,6 +270,8 @@ fun AppTextField(
         errorTestTag = errorTestTag,
         isRequired = isRequired,
         autofillType = autofillType,
+        singleLine = singleLine,
+        maxLines = maxLines,
     )
 }
 

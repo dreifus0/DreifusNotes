@@ -5,14 +5,15 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.security.SecureRandom
 
 actual class DatabaseDriverFactory(private val context: Context) {
 
     actual fun create(): SqlDriver {
+        System.loadLibrary("sqlcipher")
         val passphrase = getOrCreatePassphrase()
-        val factory = SupportFactory(passphrase)
+        val factory = SupportOpenHelperFactory(passphrase)
         return AndroidSqliteDriver(
             schema = NotesDatabase.Schema,
             context = context,

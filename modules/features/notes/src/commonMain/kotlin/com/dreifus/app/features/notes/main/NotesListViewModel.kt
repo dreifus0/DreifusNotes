@@ -10,6 +10,7 @@ import com.dreifus.app.features.notes.main.mvu.NotesListEvent
 import com.dreifus.app.features.notes.main.mvu.NotesListState
 import com.dreifus.app.features.notes.main.mvu.NotesListUpdate
 import com.dreifus.app.features.notes.main.mvu.commandHandler.NotesListCommandHandler
+import com.dreifus.app.features.notes.main.mvu.commandHandler.NotesListPersistOrderHandler
 import com.yavorcool.mvucore.impl.Store
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
@@ -30,7 +31,10 @@ class NotesListViewModel(
         Store<NotesListState, NotesListEvent, NotesListEvent.Ui, NotesListCommand, NotesListEffect>(
             initialState = NotesListState(),
             update = NotesListUpdate,
-            commandHandlers = listOf(NotesListCommandHandler(repository)),
+            commandHandlers = listOf(
+                NotesListCommandHandler(repository),
+                NotesListPersistOrderHandler(repository),
+            ),
         )
 
     val state: StateFlow<NotesListState> = store.state

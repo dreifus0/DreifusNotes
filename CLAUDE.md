@@ -157,7 +157,7 @@ Tab navigation: `TabNavState` manages the active tab and preserves each tab's ba
 
 ### Note card colors (NoteCardColor)
 
-Enum: `Purple`, `Pink`, `Green`, `Orange`. Each returns `NoteCardPalette(background, title, body, date)` via `@Composable fun palette()` — automatically switches between light/dark. `NoteCardColor.Default = Purple`.
+`NoteCardColor(seed: Color)` — data class seeded by the picked color; presets: `Purple`, `Pink`, `Green`, `Orange`, `Blue`, `Teal`, `Red`, `Yellow`. `palette()` returns `NoteCardPalette(background, title, body, date)` — theme-independent, background is always the `seed` so cards match the color pickers in both themes. `NoteCardColor.Default = Purple`.
 
 ### Typography (AppTypography)
 
@@ -210,6 +210,15 @@ All components in `modules/utils/uikit/src/commonMain/`.
 ### PIN (`pin/`)
 - `PinDots(filledCount, totalCount)` — filled dots = `accentPrimary`, empty = outlined
 - `PinKeypad(onKey, onBackspace)` — 3×4 grid, ghost keys are transparent
+
+### Dissolve effect (`effect/`)
+- `Modifier.dissolveEffect(active, onFinished)` — crumble-away deletion animation: captures the content via GraphicsLayer, scatters it as fading particles; `onFinished` fires when done (remove the item from data there). Content stays hidden after finishing.
+
+### Linkified text (`text/`)
+- `String.linkified(): AnnotatedString` — makes URLs (`https://`, `http://`, `www.`) in plain text tappable (accent color + underline); taps open the platform browser via `UriHandler`, taps outside links pass through to parent clickables.
+
+### Drag & drop reorder (`list/`)
+- `rememberDragDropState(lazyListState, canDrag, onMove, onDragEnd)` — long-press reorder for LazyColumn. Wire `Modifier.dragContainer(state)` on the LazyColumn and `draggableItemModifier(state, index)` on each reorderable item; `canDrag` filters out header items.
 
 ### TabBar (`tabs/`)
 - `TabBar(tabs, hazeState, currentTab, onTabClick)` — glassmorphism bar; `HazeState` comes from `.haze()` on the Surface above

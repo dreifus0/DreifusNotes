@@ -186,6 +186,15 @@ class NotesRepository(
         }
     }
 
+    /** Persists a manual ordering: notes take the position of their id in [orderedIds], top first. */
+    suspend fun updateOrder(orderedIds: List<Long>) {
+        db.transaction {
+            orderedIds.forEachIndexed { index, id ->
+                noteQueries.updateSortOrder(sort_order = index.toLong(), id = id)
+            }
+        }
+    }
+
     suspend fun delete(id: Long) {
         noteQueries.delete(id)
     }

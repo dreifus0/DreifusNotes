@@ -15,7 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +44,9 @@ import com.dreifus.template.uikit.icon.GlassIcon
 import com.dreifus.template.uikit.icon.Plus24
 import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.Search24
+import com.dreifus.template.uikit.list.dragContainer
+import com.dreifus.template.uikit.list.draggableItemModifier
+import com.dreifus.template.uikit.list.rememberDragDropState
 import com.dreifus.template.uikit.preview.AppPreview
 import com.dreifus.template.uikit.style.AppIcons
 import com.dreifus.template.uikit.style.AppTheme
@@ -101,8 +105,27 @@ private fun NotesListContent(
         return
     }
 
+    val listState = rememberLazyListState()
+    // Two items (title header and search bar) precede the note cards in the LazyColumn.
+    val headerItemCount = 2
+    val dragDropState = rememberDragDropState(
+        lazyListState = listState,
+        // Only note cards take part in reordering; their keys are note ids.
+        canDrag = { it.key is Long },
+        onMove = { from, to ->
+            onEvent(NotesListEvent.Ui.NoteMoved(from - headerItemCount, to - headerItemCount))
+        },
+        onDragEnd = { onEvent(NotesListEvent.Ui.NoteDragEnded) },
+    )
+    // Search results are ordered by relevance — a manual reorder there would scramble the list.
+    val reorderEnabled = state.query.isEmpty()
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp)
+            .then(if (reorderEnabled) Modifier.dragContainer(dragDropState) else Modifier),
+        state = listState,
         contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -120,12 +143,13 @@ private fun NotesListContent(
             )
         }
 
-        items(state.notes, key = { it.id }) { note ->
+        itemsIndexed(state.notes, key = { _, note -> note.id }) { index, note ->
             AppCard(
                 title = note.title,
                 body = note.body,
                 date = note.date,
                 color = note.color,
+                modifier = draggableItemModifier(dragDropState, index + headerItemCount),
                 isLocked = note.isProtected,
                 onClick = { onEvent(NotesListEvent.Ui.NoteClick(note.id)) },
             )
