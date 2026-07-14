@@ -1,0 +1,29 @@
+<resources>
+    <!-- Events list -->
+    <string name="events_title">Events</string>
+    <string name="events_add_button">+ Add event</string>
+    <string name="events_empty">No upcoming events</string>
+
+    <!-- Upcoming card -->
+    <string name="event_upcoming_label">Upcoming</string>
+    <string name="event_upcoming_empty_title">No upcoming events</string>
+    <string name="event_upcoming_empty_subtitle">Tap to add one</string>
+
+    <!-- Add / edit event -->
+    <string name="event_new_title">New event</string>
+    <string name="event_edit_title">Edit event</string>
+    <string name="event_cancel">Cancel</string>
+    <string name="event_title_label">Title</string>
+    <string name="event_title_placeholder">Event title</string>
+    <string name="event_datetime_label">Date &amp; time</string>
+    <string name="event_date_label">Date</string>
+    <string name="event_time_label">Time</string>
+    <string name="event_create_button">Add event</string>
+    <string name="event_save_button">Save</string>
+    <string name="event_delete_button">Delete event</string>
+    <string name="event_picker_ok">OK</string>
+
+    <!-- Archive -->
+    <string name="archive_title">Archive</string>
+    <string name="archive_empty">Past events will appear here</string>
+</resources>

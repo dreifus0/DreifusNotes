@@ -22,6 +22,7 @@ modules/
 │   └── notes/                      — notes data layer (SQLDelight + SQLCipher)
 ├── features/
 │   ├── notes/                      — notes feature
+│   ├── events/                     — upcoming events (list, edit bottom sheet, archive)
 │   └── stub/                       — placeholder screen (future: Settings)
 └── utils/
     ├── arch/                       — LceState (Loading/Content/Error)

@@ -31,6 +31,18 @@ val AppIcons.Search24 by cachedIcon {
     rememberPainter(SearchIcon).wrapWith(tint = AppTheme.colors.contentTertiary)
 }
 
+val AppIcons.SearchOff24 by cachedIcon {
+    rememberPainter(SearchOffIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
+}
+
+val AppIcons.Calendar24 by cachedIcon {
+    rememberPainter(CalendarIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
+}
+
+val AppIcons.Archive24 by cachedIcon {
+    rememberPainter(ArchiveIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
+}
+
 val AppIcons.Lock24 by cachedIcon {
     rememberPainter(LockIcon).wrapWith(tint = AppTheme.colors.contentPrimary)
 }
@@ -166,6 +178,44 @@ private val SearchIcon: ImageVector by lazy {
         stroke {
             circle(cx = 10.5f, cy = 10.5f, r = 7f)
             moveTo(16f, 16f); lineTo(21f, 21f)
+        }
+    }
+}
+
+private val SearchOffIcon: ImageVector by lazy {
+    icon24(name = "SearchOff") {
+        stroke {
+            circle(cx = 10.5f, cy = 10.5f, r = 7f)
+            moveTo(16f, 16f); lineTo(21f, 21f)
+            // slash on the opposite diagonal, so it doesn't merge with the handle
+            moveTo(20f, 4f); lineTo(4f, 20f)
+        }
+    }
+}
+
+private val CalendarIcon: ImageVector by lazy {
+    icon24(name = "Calendar") {
+        stroke {
+            // frame
+            moveTo(4f, 6f); lineTo(20f, 6f); lineTo(20f, 21f); lineTo(4f, 21f); close()
+            // header divider
+            moveTo(4f, 10f); lineTo(20f, 10f)
+            // hangers
+            moveTo(8f, 3f); lineTo(8f, 7f)
+            moveTo(16f, 3f); lineTo(16f, 7f)
+        }
+    }
+}
+
+private val ArchiveIcon: ImageVector by lazy {
+    icon24(name = "Archive") {
+        stroke {
+            // lid
+            moveTo(3f, 4f); lineTo(21f, 4f); lineTo(21f, 8f); lineTo(3f, 8f); close()
+            // body
+            moveTo(5f, 8f); lineTo(5f, 20f); lineTo(19f, 20f); lineTo(19f, 8f)
+            // handle
+            moveTo(10f, 12f); lineTo(14f, 12f)
         }
     }
 }

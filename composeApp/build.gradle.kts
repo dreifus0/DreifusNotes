@@ -47,6 +47,7 @@ kotlin {
             implementation(projects.modules.data.notes)
             implementation(projects.modules.data.preferences)
             implementation(projects.modules.features.pin)
+            implementation(projects.modules.features.events)
             implementation(projects.modules.features.notes)
             implementation(projects.modules.features.settings)
         }

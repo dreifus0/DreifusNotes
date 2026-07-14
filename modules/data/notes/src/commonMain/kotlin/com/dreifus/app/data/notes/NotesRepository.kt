@@ -2,10 +2,9 @@ package com.dreifus.app.data.notes
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import com.dreifus.app.data.notes.db.DatabaseDriverFactory
 import com.dreifus.app.data.notes.db.NoteBlockEntity
 import com.dreifus.app.data.notes.db.NoteEntity
-import com.dreifus.app.data.notes.db.NotesDatabase
+import com.dreifus.app.data.notes.db.NotesDatabaseHolder
 import com.dreifus.app.data.notes.model.Note
 import com.dreifus.app.data.notes.model.NoteBlock
 import com.dreifus.app.data.notes.model.NoteBlockType
@@ -21,10 +20,10 @@ import kotlinx.datetime.Clock
 @Inject
 @SingleIn(AppScope::class)
 class NotesRepository(
-    driverFactory: DatabaseDriverFactory,
+    dbHolder: NotesDatabaseHolder,
 ) {
 
-    private val db = NotesDatabase(driverFactory.create())
+    private val db = dbHolder.db
     private val noteQueries = db.noteQueries
     private val blockQueries = db.noteBlockQueries
 

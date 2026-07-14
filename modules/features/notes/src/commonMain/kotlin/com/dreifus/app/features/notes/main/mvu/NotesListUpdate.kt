@@ -5,6 +5,27 @@ import com.yavorcool.mvucore.Update
 
 val NotesListUpdate = Update<NotesListState, NotesListEvent, NotesListCommand, NotesListEffect> { state, event ->
     when (event) {
+        is NotesListEvent.Ui.Init -> Next(
+            state = state,
+            command = NotesListCommand.ObserveUpcomingEvent,
+        )
+        is NotesListEvent.UpcomingEventLoaded -> Next(
+            state = state.copy(upcomingEvent = event.event),
+        )
+        is NotesListEvent.Ui.UpcomingEventClick -> Next(
+            state = state,
+            effect = NotesListEffect.NavigateToEvents,
+        )
+        is NotesListEvent.Ui.SearchToggleClick -> {
+            val isSearchVisible = !state.isSearchVisible
+            // Closing the search resets the query, so the full list comes back.
+            if (!isSearchVisible && state.query.isNotEmpty()) Next(
+                state = state.copy(isSearchVisible = false, query = "", isLoading = true),
+                command = NotesListCommand.ObserveNotes(""),
+            ) else Next(
+                state = state.copy(isSearchVisible = isSearchVisible),
+            )
+        }
         is NotesListEvent.Ui.QueryChanged -> Next(
             state = state.copy(query = event.query, isLoading = true),
             command = NotesListCommand.ObserveNotes(event.query),

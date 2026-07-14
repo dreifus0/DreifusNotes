@@ -22,14 +22,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dreifus.app.features.events.card.UpcomingEventCard
+import com.dreifus.app.features.events.list.EventsListScreen
 import com.dreifus.app.features.notes.create.CreateNoteScreen
 import com.dreifus.app.features.notes.detail.NoteDetailScreen
 import com.dreifus.app.features.notes.main.mvu.NoteUiItem
@@ -44,6 +49,7 @@ import com.dreifus.template.uikit.icon.GlassIcon
 import com.dreifus.template.uikit.icon.Plus24
 import com.dreifus.template.uikit.glass.glassBorder
 import com.dreifus.template.uikit.icon.Search24
+import com.dreifus.template.uikit.icon.SearchOff24
 import com.dreifus.template.uikit.list.dragContainer
 import com.dreifus.template.uikit.list.draggableItemModifier
 import com.dreifus.template.uikit.list.rememberDragDropState
@@ -79,6 +85,7 @@ class NotesListScreen : RootScreenWithTabs {
                             regularNav.replaceLast(NoteDetailScreen(id, pin))
                         } else regularNav.navigate(NoteDetailScreen(effect.id))
                     }
+                    is NotesListEffect.NavigateToEvents -> regularNav.navigate(EventsListScreen())
                 }
             }
         }
@@ -100,14 +107,20 @@ private fun NotesListContent(
     if (isEmpty) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
             NotesListHeader(onAddClick = { onEvent(NotesListEvent.Ui.AddClick) })
+            UpcomingEventCard(
+                title = state.upcomingEvent?.title,
+                subtitle = state.upcomingEvent?.subtitle,
+                onClick = { onEvent(NotesListEvent.Ui.UpcomingEventClick) },
+            )
             NotesEmptyState(onCreateClick = { onEvent(NotesListEvent.Ui.AddClick) })
         }
         return
     }
 
     val listState = rememberLazyListState()
-    // Two items (title header and search bar) precede the note cards in the LazyColumn.
-    val headerItemCount = 2
+    // Items before the note cards: title header, the upcoming event card, and optionally
+    // the search bar.
+    val headerItemCount = if (state.isSearchVisible) 3 else 2
     val dragDropState = rememberDragDropState(
         lazyListState = listState,
         // Only note cards take part in reordering; their keys are note ids.
@@ -129,18 +142,38 @@ private fun NotesListContent(
         contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item { NotesListHeader(onAddClick = { onEvent(NotesListEvent.Ui.AddClick) }) }
-
         item {
-            AppTextField(
-                value = state.query,
-                onValueChange = { onEvent(NotesListEvent.Ui.QueryChanged(it)) },
-                // Shape mirrors the field's own rounding so the glass border hugs it.
-                modifier = Modifier.glassBorder(shape = RoundedCornerShape(64.dp)),
-                labelText = stringResource(Res.string.notes_search_placeholder),
-                leadingIcon = AppIcons.Search24,
-                imeAction = ImeAction.Search,
+            NotesListHeader(
+                onAddClick = { onEvent(NotesListEvent.Ui.AddClick) },
+                onSearchClick = { onEvent(NotesListEvent.Ui.SearchToggleClick) },
+                isSearchVisible = state.isSearchVisible,
             )
+        }
+
+        item(key = "upcoming_event") {
+            UpcomingEventCard(
+                title = state.upcomingEvent?.title,
+                subtitle = state.upcomingEvent?.subtitle,
+                onClick = { onEvent(NotesListEvent.Ui.UpcomingEventClick) },
+            )
+        }
+
+        if (state.isSearchVisible) {
+            item {
+                val focusRequester = remember { FocusRequester() }
+                AppTextField(
+                    value = state.query,
+                    onValueChange = { onEvent(NotesListEvent.Ui.QueryChanged(it)) },
+                    // Shape mirrors the field's own rounding so the glass border hugs it.
+                    modifier = Modifier
+                        .glassBorder(shape = RoundedCornerShape(64.dp))
+                        .focusRequester(focusRequester),
+                    labelText = stringResource(Res.string.notes_search_placeholder),
+                    leadingIcon = AppIcons.Search24,
+                    imeAction = ImeAction.Search,
+                )
+                LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            }
         }
 
         itemsIndexed(state.notes, key = { _, note -> note.id }) { index, note ->
@@ -252,7 +285,11 @@ private fun StackedCardsIllustration() {
 }
 
 @Composable
-private fun NotesListHeader(onAddClick: () -> Unit) {
+private fun NotesListHeader(
+    onAddClick: () -> Unit,
+    onSearchClick: (() -> Unit)? = null,
+    isSearchVisible: Boolean = false,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -265,8 +302,13 @@ private fun NotesListHeader(onAddClick: () -> Unit) {
             style = AppTheme.typography.heading3,
             color = AppTheme.colors.contentPrimary,
         )
-        GlassIcon(AppIcons.Plus24, onClick = onAddClick)
-
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            onSearchClick?.let {
+                val icon = if (isSearchVisible) AppIcons.SearchOff24 else AppIcons.Search24
+                GlassIcon(icon, onClick = it)
+            }
+            GlassIcon(AppIcons.Plus24, onClick = onAddClick)
+        }
     }
 }
 

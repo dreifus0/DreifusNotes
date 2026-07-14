@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.dreifus.app.features.notes"
+    namespace = "com.dreifus.app.features.events"
 }
 
 kotlin {
@@ -14,17 +14,10 @@ kotlin {
             implementation(libs.metrox.viewmodel.compose)
             implementation(compose.components.resources)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.coil.compose)
             implementation(projects.modules.utils.arch)
             implementation(projects.modules.utils.uikit)
             implementation(projects.modules.utils.coreNavigation)
-            implementation(projects.modules.utils.permissions)
             implementation(projects.modules.data.notes)
-            implementation(projects.modules.data.preferences)
-            implementation(projects.modules.features.events)
-        }
-        androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
         }
     }
 }

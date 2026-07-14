@@ -1,0 +1,7 @@
+CREATE TABLE EventEntity (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    title      TEXT    NOT NULL DEFAULT '',
+    at         INTEGER NOT NULL,
+    color      TEXT    NOT NULL DEFAULT 'Purple',
+    created_at INTEGER NOT NULL
+);

@@ -25,6 +25,7 @@ include(
     ":modules:data:notes",
     ":modules:data:preferences",
     ":modules:features:pin",
+    ":modules:features:events",
     ":modules:features:notes",
     ":modules:features:settings",
 )

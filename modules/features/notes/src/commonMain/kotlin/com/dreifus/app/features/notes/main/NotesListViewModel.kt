@@ -2,6 +2,7 @@ package com.dreifus.app.features.notes.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dreifus.app.data.notes.EventsRepository
 import com.dreifus.app.data.notes.NotesRepository
 import com.dreifus.app.features.notes.navigation.PinNavigation
 import com.dreifus.app.features.notes.main.mvu.NotesListCommand
@@ -11,6 +12,7 @@ import com.dreifus.app.features.notes.main.mvu.NotesListState
 import com.dreifus.app.features.notes.main.mvu.NotesListUpdate
 import com.dreifus.app.features.notes.main.mvu.commandHandler.NotesListCommandHandler
 import com.dreifus.app.features.notes.main.mvu.commandHandler.NotesListPersistOrderHandler
+import com.dreifus.app.features.notes.main.mvu.commandHandler.NotesListUpcomingEventHandler
 import com.yavorcool.mvucore.impl.Store
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesIntoMap(AppScope::class)
 class NotesListViewModel(
     repository: NotesRepository,
+    eventsRepository: EventsRepository,
     val pinNavigation: PinNavigation,
 ) : ViewModel() {
 
@@ -34,6 +37,7 @@ class NotesListViewModel(
             commandHandlers = listOf(
                 NotesListCommandHandler(repository),
                 NotesListPersistOrderHandler(repository),
+                NotesListUpcomingEventHandler(eventsRepository),
             ),
         )
 
@@ -42,6 +46,7 @@ class NotesListViewModel(
 
     init {
         store.launch(viewModelScope)
+        store.dispatch(NotesListEvent.Ui.Init)
         store.dispatch(NotesListEvent.Ui.QueryChanged(""))
     }
 

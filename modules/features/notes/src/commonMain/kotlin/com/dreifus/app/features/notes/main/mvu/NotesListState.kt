@@ -7,7 +7,15 @@ import com.dreifus.template.uikit.style.NoteCardColor
 data class NotesListState(
     val notes: List<NoteUiItem> = emptyList(),
     val query: String = "",
+    val isSearchVisible: Boolean = false,
     val isLoading: Boolean = true,
+    val upcomingEvent: UpcomingEventUi? = null,
+)
+
+@Immutable
+data class UpcomingEventUi(
+    val title: String,
+    val subtitle: String,
 )
 
 @Immutable

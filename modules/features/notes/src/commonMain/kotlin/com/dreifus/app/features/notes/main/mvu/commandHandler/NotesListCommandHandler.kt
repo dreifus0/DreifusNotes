@@ -1,9 +1,12 @@
 package com.dreifus.app.features.notes.main.mvu.commandHandler
 
+import com.dreifus.app.data.notes.EventsRepository
 import com.dreifus.app.data.notes.NotesRepository
+import com.dreifus.app.features.events.format.EventDateFormat
 import com.dreifus.app.features.notes.main.mvu.NoteUiItem
 import com.dreifus.app.features.notes.main.mvu.NotesListCommand
 import com.dreifus.app.features.notes.main.mvu.NotesListEvent
+import com.dreifus.app.features.notes.main.mvu.UpcomingEventUi
 import com.dreifus.template.uikit.style.NoteCardColor
 import com.yavorcool.mvucore.FilteringHandlerToFlow
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +41,25 @@ class NotesListCommandHandler(
                     date = note.updatedAt.toDisplayDate(),
                     color = NoteCardColor.deserialize(note.color),
                     isProtected = note.isProtected,
+                )
+            })
+        }
+    }
+}
+
+class NotesListUpcomingEventHandler(
+    private val eventsRepository: EventsRepository,
+) : FilteringHandlerToFlow<NotesListCommand.ObserveUpcomingEvent, NotesListCommand, NotesListEvent>(
+    NotesListCommand.ObserveUpcomingEvent::class,
+    cancelPreviousOnNewCommand = true,
+) {
+    override suspend fun handleCommand(command: NotesListCommand.ObserveUpcomingEvent): Flow<NotesListEvent> {
+        val now = Clock.System.now().toEpochMilliseconds()
+        return eventsRepository.observeNextUpcoming(now).map { event ->
+            NotesListEvent.UpcomingEventLoaded(event?.let {
+                UpcomingEventUi(
+                    title = it.title,
+                    subtitle = EventDateFormat.upcomingLabel(it.at),
                 )
             })
         }
